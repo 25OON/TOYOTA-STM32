@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snake F411 Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Kanit:wght@500;600&family=Saira+Condensed:wght@600;700&display=swap">
+<style>
+  /* Layout: เอกสารคอลัมน์เดียว max 1100px · ตาราง/ASCII เลื่อนในกล่องตัวเอง · การ์ดเฟสมีแถบสีซ้ายบอกความสำคัญ */
+  :root {
+    --ground: #F1F4F2;
+    --surface: #FFFFFF;
+    --sunken: #E7EDE9;
+    --ink: #16201C;
+    --ink2: #5A6A63;
+    --line: #C3CDC7;
+    --accent: #1E7A4D;
+    --accent-soft: #E1F0E7;
+    --crit: #C23A22;
+    --crit-soft: #F9E5E0;
+    --warn: #8F6410;
+    --warn-soft: #F6ECD6;
+    --display: "Kanit", "Saira Condensed", "Leelawadee UI", sans-serif;
+    --num: "Saira Condensed", "Arial Narrow", sans-serif;
+    --sans: "IBM Plex Sans Thai", "Leelawadee UI", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1413;
+      --surface: #161F1C;
+      --sunken: #1C2724;
+      --ink: #E1EAE5;
+      --ink2: #93A59E;
+      --line: #32433D;
+      --accent: #4FBF86;
+      --accent-soft: #14281E;
+      --crit: #F27059;
+      --crit-soft: #351C17;
+      --warn: #DFAC48;
+      --warn-soft: #2F2615;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E1413;
+    --surface: #161F1C;
+    --sunken: #1C2724;
+    --ink: #E1EAE5;
+    --ink2: #93A59E;
+    --line: #32433D;
+    --accent: #4FBF86;
+    --accent-soft: #14281E;
+    --crit: #F27059;
+    --crit-soft: #351C17;
+    --warn: #DFAC48;
+    --warn-soft: #2F2615;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 0 20px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+  img { max-width: 100%; }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-block: 34px 72px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .wrap > * { min-width: 0; }
+
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; line-height: 1.3; }
+  h1 { font-size: clamp(27px, 5.4vw, 40px); letter-spacing: -0.01em; }
+  h2 { font-size: clamp(20px, 3.4vw, 25px); }
+  h3 { font-size: 17px; }
+  p { margin: 0; }
+  .eyebrow {
+    font-family: var(--num);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .lead { color: var(--ink2); max-width: 68ch; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--sunken); padding: 1px 5px; border-radius: 3px; }
+  strong { font-weight: 600; }
+
+  section { display: grid; gap: 18px; }
+  .sechead { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+
+  header { display: grid; gap: 14px; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 6px 20px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink2);
+    padding-top: 12px; border-top: 3px solid var(--accent);
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; line-height: 1;
+    padding: 5px 10px; border-radius: 999px;
+  }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+  .p-done { color: var(--accent); background: var(--accent-soft); }
+  .p-todo { color: var(--ink2); background: var(--sunken); }
+  .p-block { color: var(--crit); background: var(--crit-soft); }
+  .p-opt { color: var(--warn); background: var(--warn-soft); }
+
+  .statusgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; justify-items: start; }
+  .stat .k { font-size: 12.5px; color: var(--ink2); }
+  .stat .v { font-size: 15px; font-weight: 600; }
+
+  .blocker {
+    border: 1px solid var(--crit);
+    border-left: 5px solid var(--crit);
+    background: var(--crit-soft);
+    border-radius: 7px;
+    padding: 18px 20px;
+    display: grid; gap: 12px;
+  }
+  .blocker h2, .blocker .eyebrow { color: var(--crit); }
+
+  .screen { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .screen .bar {
+    font-family: var(--mono); font-size: 12px; color: var(--ink2);
+    padding: 7px 14px; border-bottom: 1px solid var(--line); background: var(--sunken);
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  pre {
+    margin: 0; padding: 16px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.45;
+  }
+  .hud { font-weight: 600; color: var(--accent); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 0 16px 16px; font-family: var(--mono); font-size: 12.5px; color: var(--ink2); }
+  .cmd { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+
+  .tbox { overflow-x: auto; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th {
+    font-family: var(--num); font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink2); background: var(--sunken); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  caption { caption-side: bottom; padding: 10px 14px; font-size: 12.5px; color: var(--ink2); text-align: left; }
+
+  .track { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 14px 16px; }
+  .track .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .track .lbl { font-size: 13px; color: var(--ink2); }
+  .track .big { font-family: var(--num); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .bar { height: 8px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width .25s ease; }
+
+  .phases { display: grid; gap: 14px; }
+  .phase {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 7px;
+    border-left: 4px solid var(--line);
+    padding: 16px 18px; display: grid; gap: 12px;
+  }
+  .phase.is-block { border-left-color: var(--crit); }
+  .phase.is-core { border-left-color: var(--accent); }
+  .phase.is-opt { border-left-color: var(--warn); }
+  .phase > .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .phase .no { font-family: var(--num); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink2); }
+  .phase .dur { font-family: var(--mono); font-size: 12.5px; color: var(--ink2); margin-left: auto; }
+  .phase h3 { flex: 1 1 auto; }
+
+  ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  ul.tasks li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; }
+  ul.tasks input { margin: 6px 0 0; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  ul.tasks label { cursor: pointer; }
+  ul.tasks input:checked + label { color: var(--ink2); text-decoration: line-through; text-decoration-color: var(--line); }
+  ul.tasks input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .done { font-size: 13.5px; background: var(--sunken); border-radius: 5px; padding: 9px 12px; border-left: 3px solid var(--accent); }
+  .phase.is-block .done { border-left-color: var(--crit); }
+  .phase.is-opt .done { border-left-color: var(--warn); }
+  .done b { font-family: var(--num); letter-spacing: 0.08em; text-transform: uppercase; font-size: 12px; color: var(--ink2); }
+
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 9px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 12px; }
+  ol.steps li::before {
+    content: counter(s); font-family: var(--num); font-weight: 700; font-size: 14px;
+    color: var(--accent); background: var(--accent-soft); border-radius: 50%;
+    width: 24px; height: 24px; display: grid; place-items: center; margin-top: 3px;
+  }
+  .note { font-size: 13.5px; color: var(--ink2); border-left: 3px solid var(--warn); padding-left: 12px; }
+
+  .svgbox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 14px; }
+  .svgbox svg { display: block; min-width: 560px; max-width: 100%; height: auto; }
+
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; }
+  .card h3 { font-size: 16px; }
+
+  footer { color: var(--ink2); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Embedded Systems &middot; Project Plan</p>
+    <h1>Snake บน NUCLEO-F411RE</h1>
+    <p class="lead">เกมงูเขียน bare-metal CMSIS ระดับรีจิสเตอร์ ไม่มี HAL ไม่มี CubeMX
+      ใช้หน้าต่าง PuTTY เป็นจอภาพ บอร์ดวาดฉากเป็นตัวอักษรส่งออก UART ทุกเฟรม
+      หน้านี้คือแผนงานฉบับกางดูตอนลงมือ เนื้อหามาจาก <code>PROGRESS.md</code></p>
+    <div class="meta">
+      <span>STM32F411RE &middot; HSI 16 MHz &middot; ไม่ตั้ง PLL</span>
+      <span>Training Shield 1</span>
+      <span>UART 115200 8N1</span>
+      <span>อัปเดต 2026-10-01</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="statusgrid">
+      <div class="stat"><span class="k">ออกแบบ</span><span class="v">จบแล้ว ไม่ต้องรื้อ</span><span class="pill p-done">เสร็จ</span></div>
+      <div class="stat"><span class="k">โปรเจกต์ <code>Snake/</code></span><span class="v">คอมไพล์ผ่าน 0 warning</span><span class="pill p-done">เสร็จ</span></div>
+      <div class="stat"><span class="k">โค้ดเกม</span><span class="v">ยังเป็นโครง bring-up</span><span class="pill p-todo">ยังไม่เริ่ม</span></div>
+      <div class="stat"><span class="k">บอร์ด</span><span class="v">ต่อ SWD ไม่ได้</span><span class="pill p-block">ติดบล็อก</span></div>
+    </div>
+  </section>
+
+  <section class="blocker">
+    <p class="eyebrow">Phase 00 &middot; ต้องผ่านก่อนทุกอย่าง</p>
+    <h2>บอร์ดต่อ SWD ไม่ได้ — กู้ให้ได้ก่อน</h2>
+    <p>อาการตั้งแต่ 2026-09-29: ST-LINK เจอปกติ ไฟ 3.27 V มาครบ แต่ core ไม่ตอบ และ UART เงียบไปด้วย</p>
+    <div class="cmd"><pre>Error: Unable to get core ID
+Error: No STM32 target found!</pre></div>
+    <p>ตัดออกไปแล้ว: <strong>ปัญหาโค้ด</strong> (ไม่แตะ PA13/PA14 ไม่มีโหมดหลับ) และ <strong>RDP Level 2</strong>
+      (ถ้าล็อกชิป โปรแกรมจะยังวิ่งและพ่น UART ออกมา) → สรุปว่า <strong>MCU ไม่ได้ทำงาน</strong>
+      น่าจะถูกกดค้างที่ reset หรือไฟไม่ถึงขาชิป</p>
+    <p class="note">ถ้าบอร์ดเสียจริง ทุกแผนหยุด ต้องหาบอร์ดใหม่ — เพราะงั้นต้องรู้ผลข้อนี้ให้เร็วที่สุด</p>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">The Screen</p>
+      <h2>เกมหน้าตาแบบนี้</h2>
+    </div>
+    <p class="lead">ฉาก 32 &times; 16 ช่อง เฟรมละ ~590 ไบต์ ส่ง 51 ms ที่ 115200
+      งูเดิน 6-8 ก้าว/วินาที (125-166 ms ต่อก้าว) → เหลือเวลาว่างเกินครึ่ง จึง <strong>ไม่ต้องทำ double buffer</strong></p>
+    <div class="screen">
+      <div class="bar"><span>COM4 &mdash; PuTTY 115200 8N1</span><span>ใช้ ESC[H ทับเฟรมเดิม ไม่ล้างจอ</span></div>
+      <pre><span class="hud">  SCORE 070    LEN 12    SPEED 4    BEST 120</span>
+
+  ##################################
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  #          ooooo                 #
+  #              o                 #
+  #              o       *         #
+  #          @oooo                 #
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  #                                #
+  ##################################</pre>
+      <div class="legend"><span>@ หัวงู</span><span>o ตัว</span><span># กำแพง</span><span>* อาหาร</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Decided &middot; อย่ารื้อ</p>
+      <h2>สิ่งที่ตัดสินใจแล้ว</h2>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>ชีวิตเดียว</h3>
+        <p>ไม่มีตัวนับชีวิต ไม่มีการเกิดใหม่ ชนกำแพงหรือชนตัวเองแล้วเข้า GAME OVER ทันที</p>
+      </div>
+      <div class="card">
+        <h3>ไม่ใช้ 7-segment</h3>
+        <p>คะแนนโชว์บนจอ UART อยู่แล้ว เอามาโชว์เลขซ้ำคือของประดับ
+          ผลพลอยได้คือไม่ต้องไปหาขา 2<sup>0</sup> ที่ถูกตัวจอบัง ซึ่งยังไม่รู้ว่าขาไหน</p>
+      </div>
+      <div class="card">
+        <h3>LED เป็นสัญญาณสถานะ ไม่ใช่จอ</h3>
+        <p>4 ดวงบอกสถานะเกมอย่างเดียว ไม่เอามาแสดงข้อมูล</p>
+      </div>
+      <div class="card">
+        <h3>BEST เก็บในแรม</h3>
+        <p>อยู่ได้จนถอดไฟ ถ้าจะให้ถาวรต้องเขียนลง Flash = peripheral เพิ่มอีกตัว ไม่คุ้มเวลา</p>
+      </div>
+      <div class="card">
+        <h3>ไม่มีเสียง ไม่ใช้ buzzer</h3>
+        <p>feedback ตอนกินอาหารใช้ LED ฟ้าแวบอย่างเดียว · peripheral ตัวที่สองใช้
+          <strong>IWDG</strong> แทน ซึ่งถูกกว่าและไม่กินขาเลย</p>
+      </div>
+    </div>
+    <div class="tbox">
+      <table>
+        <caption>กินอาหารเป็น “เหตุการณ์” ซ้อนทับตอนไฟเขียวติดอยู่ ไม่ใช่สถานะ</caption>
+        <thead><tr><th>สถานะเกม</th><th>LED</th><th>ขา</th></tr></thead>
+        <tbody>
+          <tr><td>IDLE — รอกด START</td><td>เขียวกระพริบช้า</td><td class="mono">PB6</td></tr>
+          <tr><td>PLAYING</td><td>เขียวนิ่ง</td><td class="mono">PB6</td></tr>
+          <tr><td>PAUSED</td><td>เหลืองนิ่ง</td><td class="mono">PA7</td></tr>
+          <tr><td>GAME OVER</td><td>แดงนิ่ง</td><td class="mono">PA6</td></tr>
+          <tr><td><em>กินอาหาร</em></td><td>ฟ้าแวบ ~150 ms</td><td class="mono">PA5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Pin Map</p>
+      <h2>ผังขาของโปรเจกต์นี้</h2>
+    </div>
+    <div class="tbox">
+      <table>
+        <caption>Joystick ใช้ 3V3 เท่านั้น ห้ามต่อ 5V · ไม่ใช้แล้ว: KY-028, LDR (PA1), NTC บน shield (PA0), 7-segment, buzzer · IWDG ไม่กินขาเลย</caption>
+        <thead><tr><th>อุปกรณ์</th><th>ขา</th><th>ช่องทาง</th><th>หมายเหตุ</th></tr></thead>
+        <tbody>
+          <tr><td>Joystick VRx</td><td class="mono">PB0</td><td class="mono">ADC1_IN8</td><td>CN7 แถวใน ตำแหน่งที่ 3 จากปลายไกล USB</td></tr>
+          <tr><td>Joystick VRy</td><td class="mono">PC0</td><td class="mono">ADC1_IN10</td><td>CN7 แถวใน ตำแหน่งที่ 1</td></tr>
+          <tr><td>Joystick VCC / GND</td><td class="mono">3V3 / GND</td><td>—</td><td>ยืมจาก header AHT10 บน shield</td></tr>
+          <tr><td>Pot ปรับความเร็วเกม</td><td class="mono">PA4</td><td class="mono">ADC1_IN4</td><td>มีบน shield แล้ว ป้าย A2</td></tr>
+          <tr><td>UART TX — จอภาพ</td><td class="mono">PA2</td><td class="mono">USART2 AF7</td><td>ออก ST-Link VCP</td></tr>
+          <tr><td>ปุ่ม D2 START</td><td class="mono">PA10</td><td class="mono">EXTI15_10</td><td>active-low ต้องเปิด pull-up</td></tr>
+          <tr><td>ปุ่ม D3 RESTART</td><td class="mono">PB3</td><td class="mono">EXTI3</td><td>active-low ต้องเปิด pull-up</td></tr>
+          <tr><td>ปุ่ม D4 PAUSE/RESUME</td><td class="mono">PB5</td><td class="mono">EXTI9_5</td><td>active-low ต้องเปิด pull-up</td></tr>
+          <tr><td>ปุ่ม D5</td><td class="mono">PB4</td><td>—</td><td>ยังว่าง เผื่อไว้</td></tr>
+          <tr><td>LED เขียว / เหลือง / แดง / ฟ้า</td><td class="mono">PB6 PA7 PA6 PA5</td><td>GPIO out</td><td>active-high</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Core Data</p>
+      <h2>ข้อมูลหลักและหนึ่งก้าวของงู</h2>
+    </div>
+    <div class="cmd"><pre>#define SNAKE_GRID_W    (32U)
+#define SNAKE_GRID_H    (16U)
+#define SNAKE_CELLS     (512U)          /* 32 x 16 */
+
+typedef enum { SNAKE_UP, SNAKE_DOWN, SNAKE_LEFT, SNAKE_RIGHT } SnakeDir_t;
+typedef enum { GAME_IDLE, GAME_PLAYING, GAME_PAUSED, GAME_OVER } GameState_t;
+
+typedef struct { uint8_t x; uint8_t y; } SnakeCell_t;
+
+static SnakeCell_t s_body[SNAKE_CELLS];      /* ring buffer   1024 ไบต์ */
+static uint8_t     s_occupancy[SNAKE_CELLS]; /* 0 ว่าง 1 งู 2 อาหาร  512 ไบต์ */
+static uint16_t    s_headIndex;
+static uint16_t    s_length;</pre></div>
+    <div class="two">
+      <div class="card">
+        <h3>ทำไมเก็บสองชุด</h3>
+        <p>ring buffer บอก <strong>ลำดับ</strong> ว่าหางไหนจะหายก่อน · occupancy บอก <strong>ช่องนั้นมีอะไร</strong>
+          ทำให้เช็กชนตัวเองเป็น O(1) แทนที่จะไล่ดูทั้งตัวงูที่ยาวได้ถึง 512 ช่อง</p>
+        <p>เปลืองแรม 512 ไบต์แลกความเร็ว — เป็นจุดที่อธิบายในรายงานได้ดี</p>
+      </div>
+      <div class="card">
+        <h3>แรมที่ใช้</h3>
+        <p>body 1024 + occupancy 512 + frame buffer 640 &asymp; <strong>2.2 KB</strong> จาก 128 KB</p>
+      </div>
+    </div>
+    <h3>หนึ่งก้าวของงู</h3>
+    <ol class="steps">
+      <li>รับทิศที่ขอ → ถ้าเป็นทิศตรงข้ามกับที่วิ่งอยู่ ให้เมิน</li>
+      <li>คำนวณช่องถัดไปจากหัว</li>
+      <li>ออกนอกกรอบ? → <strong>ตาย</strong></li>
+      <li>occupancy เป็นตัวงู? → <strong>ตาย</strong> &nbsp;ยกเว้นถ้าเป็นช่องหางที่กำลังจะหายรอบนี้</li>
+      <li>occupancy เป็นอาหาร? → <code>length++</code> วางอาหารใหม่ LED ฟ้าแวบ &nbsp;·&nbsp; ถ้าไม่ใช่ → ลบหาง (occupancy = 0 แล้วเลื่อน tail)</li>
+      <li>เขียนหัวใหม่ลง ring buffer และ occupancy</li>
+    </ol>
+    <p class="note"><strong>ข้อ 4 คือกับดักคลาสสิก</strong> — ช่องหางต้องถือว่าว่าง เพราะหางจะเลื่อนออกในก้าวเดียวกัน ถ้าลืมจะตายทั้งที่ไม่ควรตาย</p>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">State Machine</p>
+      <h2>ผังสถานะเกม</h2>
+    </div>
+    <div class="svgbox">
+      <svg viewBox="0 0 700 240" role="img" aria-label="ผังสถานะ IDLE ไป PLAYING ไป GAME_OVER และ PLAYING สลับกับ PAUSED">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink2)"></path>
+          </marker>
+        </defs>
+        <g fill="none" stroke="var(--ink2)" stroke-width="1.6" marker-end="url(#ah)">
+          <path d="M150,58 L242,58"></path>
+          <path d="M412,58 L506,58"></path>
+          <path d="M312,84 L312,146"></path>
+          <path d="M352,146 L352,84"></path>
+          <path d="M576,84 L576,194 L248,194 L248,84"></path>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" text-anchor="middle">
+          <rect x="40" y="34" width="110" height="48" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"></rect>
+          <text x="95" y="63" fill="var(--accent)">IDLE</text>
+          <rect x="242" y="34" width="170" height="48" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"></rect>
+          <text x="327" y="63" fill="var(--accent)">PLAYING</text>
+          <rect x="506" y="34" width="150" height="48" rx="6" fill="var(--crit-soft)" stroke="var(--crit)" stroke-width="1.6"></rect>
+          <text x="581" y="63" fill="var(--crit)">GAME_OVER</text>
+          <rect x="258" y="146" width="138" height="46" rx="6" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"></rect>
+          <text x="327" y="174" fill="var(--warn)">PAUSED</text>
+        </g>
+        <g font-family="IBM Plex Sans Thai, sans-serif" font-size="12" fill="var(--ink2)">
+          <text x="196" y="48" text-anchor="middle">กด START (D2)</text>
+          <text x="459" y="48" text-anchor="middle">ชน = ตาย</text>
+          <text x="304" y="120" text-anchor="end">กด PAUSE (D4)</text>
+          <text x="360" y="120">กด PAUSE อีกครั้ง</text>
+          <text x="412" y="212" text-anchor="middle">กด RESTART (D3)</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Files</p>
+      <h2>โครงสร้างไฟล์ที่วางไว้</h2>
+    </div>
+    <div class="tbox">
+      <table>
+        <caption>Driver ที่ยกมาจาก FireAlarm ใช้ได้เลย ไม่ต้องแตะ: drv_gpio, drv_led, drv_input, drv_tick, drv_uart, drv_system, drv_critical (drv_adc ต้องแก้ในเฟส 1)</caption>
+        <thead><tr><th>ไฟล์</th><th>หน้าที่</th><th>สถานะ</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Src/App/app_main.c</td><td>main loop เชื่อมทุกอย่าง LED ปุ่ม</td><td><span class="pill p-done">มีแล้ว เป็นโครง bring-up</span></td></tr>
+          <tr><td class="mono">Src/App/app_game.c</td><td>state machine, คะแนน, BEST</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+          <tr><td class="mono">Src/App/app_snake.c</td><td>ตรรกะงู: ring buffer, เดิน, ชน, กิน</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+          <tr><td class="mono">Src/App/app_render.c</td><td>วาดฉากลง frame buffer</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+          <tr><td class="mono">Src/App/app_input.c</td><td>ADC → ทิศทาง (deadzone) + pot → ความเร็ว</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+          <tr><td class="mono">Src/Driver/drv_rand.c</td><td>ตัวสุ่มเขียนเอง (MISRA 21.24 ห้าม rand/srand)</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+          <tr><td class="mono">Src/Driver/drv_wdg.c</td><td>IWDG — peripheral ตัวที่สอง</td><td><span class="pill p-todo">ต้องเขียนใหม่</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">ยังไม่ได้ import เข้า CubeIDE — ต้อง File &gt; Import &gt; Existing Projects ชี้ไปที่โฟลเดอร์ <code>Training_EmbeddedSystems\Snake</code></p>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Roadmap</p>
+      <h2>ลำดับการทำ — แต่ละเฟสต้องเห็นผลบนบอร์ดจริงก่อนไปต่อ</h2>
+    </div>
+    <p class="lead">รวม 3-3.5 วัน · เฟส 1-5 คือเกมที่เล่นได้จริง = 2.5 วัน · เฟส 0 ไม่นับเวลาเพราะเป็นการซ่อม</p>
+
+    <div class="track">
+      <div class="row">
+        <span class="lbl">ติ๊กไว้ตอนทำเสร็จ — จำไว้ในเบราว์เซอร์เครื่องนี้</span>
+        <span><span class="big" id="pdone">0</span> / <span id="ptotal">0</span> ข้อ</span>
+      </div>
+      <div class="bar"><i id="pfill"></i></div>
+    </div>
+
+    <div class="phases">
+
+      <article class="phase is-block">
+        <div class="top"><span class="no">Phase 00</span><h3>กู้บอร์ด — บล็อกทุกอย่าง</h3><span class="dur">ต้องรู้ผลก่อนเริ่มเขียนโค้ด</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t0a"><label for="t0a">ถอดสาย KY-028 ออกทั้งหมด</label></li>
+          <li><input type="checkbox" id="t0b"><label for="t0b">ถอด shield ออก เหลือ NUCLEO เปล่า ๆ</label></li>
+          <li><input type="checkbox" id="t0c"><label for="t0c">รัน <code>STM32_Programmer_CLI.exe -l</code> — เจอโพรบไหม</label></li>
+          <li><input type="checkbox" id="t0d"><label for="t0d">รัน <code>STM32_Programmer_CLI.exe -c port=SWD mode=UR</code> — คุยกับชิปได้ไหม</label></li>
+          <li><input type="checkbox" id="t0e"><label for="t0e">ถ้ามีมัลติมิเตอร์ วัด NRST เทียบ GND ต้องได้ ~3.3 V · ได้ 0 V คือถูกกดค้างที่ reset</label></li>
+        </ul>
+        <p class="done"><b>ตัดสินผล</b><br>บอร์ดเปล่าติด = ปัญหาอยู่ที่ shield หรือสายที่ต่อ &nbsp;·&nbsp; ยังไม่ติด = ต้องหาบอร์ดใหม่</p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 01</span><h3>ปรับ driver เดิม</h3><span class="dur">0.5 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t1a"><label for="t1a">ขยาย <code>DRV_UART_TX_BUFFER_SIZE</code> จาก 128 → 640</label></li>
+          <li><input type="checkbox" id="t1b"><label for="t1b">เปลี่ยน ADC เป็น 3 ช่อง: IN8 (PB0 VRx), IN10 (PC0 VRy), IN4 (PA4 pot) — แก้ <code>s_dmaBuffer</code>, <code>SQR1</code> (จำนวนช่อง), <code>SQR3</code> (ลำดับช่อง) ใน <code>drv_adc.c</code></label></li>
+          <li><input type="checkbox" id="t1c"><label for="t1c">ต่อ joystick เข้าบอร์ดที่ CN7 แถวใน</label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>PuTTY พิมพ์ค่า ADC 3 ช่อง ขยับ joystick แล้วเลขวิ่ง</p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 02</span><h3>วาดฉากนิ่ง</h3><span class="dur">0.5 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t2a"><label for="t2a"><code>app_render.c</code> — frame buffer + วาดกำแพง งูตัวนิ่ง อาหาร 1 จุด</label></li>
+          <li><input type="checkbox" id="t2b"><label for="t2b">ใช้ <code>ESC[H</code> เลื่อนเคอร์เซอร์กลับมุมบนซ้ายแล้วทับของเดิม — <strong>ห้ามใช้ <code>ESC[2J</code> ล้างจอ</strong> ไม่งั้นภาพกะพริบ</label></li>
+          <li><input type="checkbox" id="t2c"><label for="t2c">เช็ก <code>DrvUart_IsBusy()</code> ก่อนส่งเฟรมใหม่ ถ้ายังไม่เสร็จให้ <strong>ข้ามเฟรมนั้น อย่ารอ</strong></label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>ส่งซ้ำทุก 125 ms แล้วภาพนิ่ง ไม่กะพริบ ไม่เลื่อน</p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 03</span><h3>งูเดินได้</h3><span class="dur">0.5 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t3a"><label for="t3a"><code>app_snake.c</code> — ring buffer + occupancy</label></li>
+          <li><input type="checkbox" id="t3b"><label for="t3b">เดินทิศเดียว + ตรวจชนกำแพง</label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>งูเลื้อยเองไปทางขวา ชนกำแพงแล้วหยุด</p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 04</span><h3>บังคับได้ + กินได้</h3><span class="dur">0.5 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t4a"><label for="t4a"><code>app_input.c</code> — deadzone ของ joystick (ADC 0-4095 ต่อแกน) + ห้ามกลับหลัง 180&deg;</label></li>
+          <li><input type="checkbox" id="t4b"><label for="t4b"><code>drv_rand.c</code> — LCG หรือ xorshift เขียนเอง seed จากค่า ADC ดิบตอนเปิดเครื่อง (บิตล่างเป็น noise จริง)</label></li>
+          <li><input type="checkbox" id="t4c"><label for="t4c">วางอาหาร: <strong>นับช่องว่างก่อน</strong> แล้วสุ่มว่าเอาช่องว่างลำดับที่เท่าไหร่ แล้วไล่หา — O(512) ต่อการกิน 1 ครั้ง · <strong>อย่าสุ่มซ้ำจนกว่าจะเจอช่องว่าง</strong> เพราะตอนงูยาวจะสุ่มไม่จบ</label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>เล่นได้จริงครบลูป</p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 05</span><h3>สถานะ + LED + ปุ่ม</h3><span class="dur">0.5 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t5a"><label for="t5a"><code>app_game.c</code> state machine ตามผังด้านบน</label></li>
+          <li><input type="checkbox" id="t5b"><label for="t5b">จอ GAME OVER + คะแนน BEST</label></li>
+          <li><input type="checkbox" id="t5c"><label for="t5c">ผูก LED 4 ดวงกับสถานะ และปุ่ม 3 ปุ่มผ่าน EXTI</label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>เล่นซ้ำได้เรื่อย ๆ ไม่ต้องกดรีเซ็ตบอร์ด &nbsp;·&nbsp; ถึงจุดนี้คือ <strong>เกมที่เล่นได้จริง</strong></p>
+      </article>
+
+      <article class="phase is-core">
+        <div class="top"><span class="no">Phase 06</span><h3>IWDG — peripheral ตัวที่สอง</h3><span class="dur">0.25 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t6a"><label for="t6a"><code>drv_wdg.c</code> — เปิด IWDG คาบประมาณ 500 ms แล้ว reload ใน main loop</label></li>
+          <li><input type="checkbox" id="t6b"><label for="t6b">ตอนบูตอ่าน <code>RCC-&gt;CSR</code> บิต <code>IWDGRSTF</code> ถ้าตั้งอยู่ = รอบก่อนถูก watchdog รีเซ็ต ให้พิมพ์บอกทาง UART แล้วเคลียร์ด้วยบิต <code>RMVF</code></label></li>
+        </ul>
+        <p class="done"><b>เสร็จเมื่อ</b><br>จงใจวนค้างในเกม แล้วบอร์ดรีเซ็ตเอง และข้อความแจ้งโผล่บนจอ</p>
+      </article>
+
+      <article class="phase">
+        <div class="top"><span class="no">Phase 07</span><h3>MISRA + เอกสาร</h3><span class="dur">0.5-1 วัน</span></div>
+        <ul class="tasks">
+          <li><input type="checkbox" id="t7a"><label for="t7a">แก้ <code>MISRA_CheckSheet_TH.md</code> จากเวอร์ชัน FireAlarm ให้อ้างโค้ด Snake</label></li>
+          <li><input type="checkbox" id="t7b"><label for="t7b">เพิ่ม <strong>Rule 21.24</strong> (ห้าม <code>rand</code>/<code>srand</code>) เป็นข้อใหม่ → 27 rule</label></li>
+          <li><input type="checkbox" id="t7c"><label for="t7c">คอมไพล์ให้ได้ 0 warning ด้วยแฟล็กชุดใน <code>CLAUDE.md</code></label></li>
+          <li><input type="checkbox" id="t7d"><label for="t7d">คอมเมนต์ภาษาไทยสไตล์ <code>@fn/@brief</code> ให้ครบทุกไฟล์ใหม่</label></li>
+        </ul>
+        <div class="cmd"><pre>-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -std=gnu11 -DSTM32F411xE
+-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow -Wundef
+-Wmissing-prototypes -Wstrict-prototypes -Wcast-qual</pre></div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Risk</p>
+      <h2>ความเสี่ยงและทางถอย</h2>
+    </div>
+    <div class="tbox">
+      <table>
+        <thead><tr><th>เสี่ยง</th><th>ทางถอย</th></tr></thead>
+        <tbody>
+          <tr><td><strong>บอร์ดเสียจริง</strong></td><td>รู้ตั้งแต่เฟส 0 — ถ้าเสีย ทุกแผนหยุด ต้องหาบอร์ดใหม่</td></tr>
+          <tr><td>หา joystick ไม่เจอ หรือต่อไม่ได้</td><td>ใช้ปุ่ม 4 ปุ่มบังคับทิศ + pot ปรับความเร็ว ยังผ่านเกณฑ์ ADC แต่ ADC จะดูเป็นของเสริม</td></tr>
+          <tr><td>ภาพกะพริบจนเล่นไม่ได้</td><td>ลดฉากเหลือ 24 &times; 12 — เฟรม ~320 ไบต์ ส่ง 28 ms</td></tr>
+          <tr><td>เวลาไม่พอ</td><td>เฟส 6 (IWDG) ใช้เวลาแค่ 0.25 วัน ไม่ต้องตัด · ให้ตัดจอ GAME OVER กับ BEST แทน</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Requirements</p>
+      <h2>เช็กว่าตอบโจทย์ <code>Instruction.jpg</code> ครบ</h2>
+    </div>
+    <div class="tbox">
+      <table>
+        <caption>ทุกข้อเป็นของที่เกมขาดไม่ได้จริง ไม่มีอันไหนใส่มาเพื่อให้ครบเกณฑ์ — ต่างจาก FireAlarm ที่ ADC กับ UART แค่วัดกับรายงาน</caption>
+        <thead><tr><th>ข้อกำหนด</th><th>ทำด้วย</th><th>เฟส</th></tr></thead>
+        <tbody>
+          <tr><td>GPIO</td><td>LED 4 ดวงเป็นสัญญาณสถานะ + ปุ่ม 3 ปุ่ม</td><td class="mono">5</td></tr>
+          <tr><td>UART ห้าม polling</td><td><strong>เป็นจอภาพ</strong> ส่งผ่าน DMA1 Stream6</td><td class="mono">2</td></tr>
+          <tr><td>ADC ห้าม polling</td><td>joystick 2 แกน + pot ผ่าน DMA2 Stream0 ทริกด้วย TIM2 TRGO</td><td class="mono">1</td></tr>
+          <tr><td>EXTI อย่างน้อย 1 จุด</td><td>3 สาย: EXTI15_10 (D2), EXTI3 (D3), EXTI9_5 (D4)</td><td class="mono">5</td></tr>
+          <tr><td>Peripheral เพิ่มอีก 1</td><td>TIM2 (จังหวะเกม + ทริก ADC) <strong>และ</strong> IWDG (watchdog)</td><td class="mono">1, 6</td></tr>
+          <tr><td>MISRA-C &ge; 22 rule</td><td>ยกจาก check sheet เดิม 26 ข้อ + เพิ่ม Rule 21.24</td><td class="mono">7</td></tr>
+          <tr><td>แยก Application กับ Driver</td><td>ตามโครงสร้างไฟล์ด้านบน</td><td class="mono">ทุกเฟส</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <p class="eyebrow">Open Questions</p>
+      <h2>คำถามที่ยังค้าง</h2>
+    </div>
+    <ol class="steps">
+      <li>บอร์ดเปล่า (ถอด shield แล้ว) ต่อติดไหม — <strong>เฟส 0 ตอบข้อนี้</strong></li>
+      <li>จะลบ <code>PROJECT_SUMMARY_TH.md</code> (สรุปเก่าของ FireAlarm) ทิ้งด้วยไหม</li>
+    </ol>
+  </section>
+
+  <footer>
+    ที่มา: <code>PROGRESS.md</code> และ <code>CLAUDE.md</code> ในโฟลเดอร์ <code>D:\DownloadV2\Micro</code> ·
+    โปรเจกต์เดิม FireAlarm ลบโฟลเดอร์ทิ้งแล้ว 2026-10-01 ยังกู้จากถังรีไซเคิลได้ ·
+    ถ้าแผนเปลี่ยน ให้แก้ <code>PROGRESS.md</code> เป็นหลัก แล้วอัปเดตหน้านี้ตาม
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('ul.tasks input[type="checkbox"]'));
+  var fill = document.getElementById('pfill');
+  var done = document.getElementById('pdone');
+  var total = document.getElementById('ptotal');
+  var KEY = 'snake-plan-v1';
+  var saved = {};
+
+  try {
+    var raw = window.localStorage.getItem(KEY);
+    if (raw) { saved = JSON.parse(raw) || {}; }
+  } catch (e) { saved = {}; }
+
+  function render() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) { n += 1; } });
+    done.textContent = String(n);
+    total.textContent = String(boxes.length);
+    fill.style.width = boxes.length ? ((n / boxes.length) * 100) + '%' : '0%';
+  }
+
+  boxes.forEach(function (b) {
+    if (saved[b.id] === true) { b.checked = true; }
+    b.addEventListener('change', function () {
+      saved[b.id] = b.checked;
+      try { window.localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { /* โหมดส่วนตัวเขียนไม่ได้ ไม่เป็นไร */ }
+      render();
+    });
+  });
+
+  render();
+}());
+</script>
+</body>
+</html>
