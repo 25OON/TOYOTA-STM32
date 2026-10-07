@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snake F411 — สรุปโปรเจกต์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Kanit:wght@500;600&display=swap">
+<style>
+  :root {
+    --ground:#F1F4F2; --surface:#FFFFFF; --sunken:#E7EDE9;
+    --ink:#16201C; --ink2:#5A6A63; --ink3:#8A9992; --line:#C3CDC7;
+    --accent:#1E7A4D; --accent-soft:#E1F0E7;
+    --crit:#C23A22; --crit-soft:#F9E5E0;
+    --warn:#8F6410; --warn-soft:#F6ECD6;
+    --display:"Kanit","Leelawadee UI",sans-serif;
+    --sans:"IBM Plex Sans Thai","Leelawadee UI","Segoe UI",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.75}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+
+  header{background:var(--ink);color:#EAF2EE;margin-bottom:28px;padding:38px 0 30px}
+  header .wrap{padding-bottom:0}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#7FBFA0}
+  h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1.2;margin:8px 0 6px}
+  header p{margin:0;color:#A9BDB4;max-width:62ch}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .badge{background:#243029;border:1px solid #38493F;border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12px;color:#BFE0CE}
+  .badge b{color:#8FD6AE;font-weight:500}
+
+  section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:26px 28px;margin-bottom:18px}
+  h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 4px;display:flex;align-items:baseline;gap:11px}
+  h2 .n{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500}
+  h2 + .sub{color:var(--ink2);margin:0 0 20px;font-size:14px}
+  h3{font-family:var(--display);font-weight:500;font-size:16px;margin:26px 0 9px}
+  h3:first-of-type{margin-top:14px}
+  p{margin:0 0 12px}
+  ul{margin:0 0 12px;padding-left:20px}
+  li{margin-bottom:5px}
+  code{font-family:var(--mono);font-size:.9em;background:var(--sunken);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:12.5px;line-height:1.6;background:var(--ink);color:#C9E5D6;
+      padding:16px 18px;border-radius:8px;overflow-x:auto;margin:0 0 14px}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+
+  table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:14px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);
+     background:var(--sunken);border-bottom:2px solid var(--line)}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono,th.mono{font-family:var(--mono);font-size:13px;white-space:nowrap}
+  .ok{color:var(--accent);font-weight:600}
+  .skip{color:var(--ink3)}
+  .tablescroll{overflow-x:auto;margin-bottom:14px}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+  .card{background:var(--sunken);border-radius:8px;padding:16px 18px}
+  .card h4{font-family:var(--display);font-weight:500;font-size:14px;margin:0 0 7px;color:var(--accent)}
+  .card p{margin:0;font-size:13.5px;color:var(--ink2);line-height:1.65}
+
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;
+        padding:13px 17px;margin:0 0 14px;font-size:14px}
+  .note.bug{border-left-color:var(--crit);background:var(--crit-soft)}
+  .note.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+  .note b{font-weight:600}
+
+  .screen{background:#0B0F0D;color:#9BE3B8;font-family:var(--mono);font-size:12.5px;line-height:1.45;
+          padding:18px 20px;border-radius:8px;overflow-x:auto;margin:0 0 14px;white-space:pre}
+
+  .bugitem{border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:12px}
+  .bugitem h4{font-family:var(--display);font-weight:500;font-size:15px;margin:0 0 8px}
+  .bugitem h4 .tag{font-family:var(--mono);font-size:11px;background:var(--crit-soft);color:var(--crit);
+        padding:2px 8px;border-radius:999px;margin-right:9px;vertical-align:middle}
+  .bugitem p{font-size:14px;margin:0 0 8px}
+  .bugitem p:last-child{margin-bottom:0}
+
+  .diagram{background:var(--sunken);border:1px solid var(--line);border-radius:8px;
+           padding:16px;margin:0 0 16px;overflow-x:auto}
+  .diagram svg{display:block;width:100%;height:auto;min-width:700px}
+  .dg-box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+  .dg-hw{fill:#EEF2F6;stroke:#A8B6C2;stroke-width:1.2}
+  .dg-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.3}
+  .dg-panel{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:4 4}
+  .dg-t{font-family:var(--display);font-size:13px;font-weight:600;fill:var(--ink)}
+  .dg-d{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
+  .dg-band{font-family:var(--mono);font-size:10px;fill:var(--ink3);letter-spacing:.06em}
+  .dg-l{stroke:#8A9992;stroke-width:1.3;fill:none}
+  .dg-la{stroke:var(--accent);stroke-width:1.4;fill:none;stroke-dasharray:5 3}
+  .dg-lbl{font-family:var(--mono);font-size:10px;fill:var(--ink2)}
+  .dg-chip{fill:var(--sunken)}
+
+  footer{color:var(--ink3);font-size:13px;text-align:center;padding:10px 20px 0}
+
+  @media print{
+    body{background:#fff}
+    header{background:#fff;color:#000;border-bottom:2px solid #000}
+    header p,.eyebrow{color:#444}
+    .badge{background:#fff;border-color:#999;color:#000}
+    section{break-inside:avoid;border-color:#999}
+    pre,.screen{background:#f4f4f4;color:#000;border:1px solid #ccc}
+    .diagram{background:#fff;border-color:#999}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Embedded Systems · NUCLEO-F411RE · bare-metal CMSIS</div>
+    <h1>Snake — เกมงูบนจอ terminal ผ่าน UART</h1>
+    <p>บอร์ดวาดฉากทั้งหน้าเป็นตัวอักษรแล้วส่งออก UART ทุกเฟรม · บังคับด้วย joystick ผ่าน ADC ·
+       เขียนระดับรีจิสเตอร์ล้วน ไม่มี HAL ไม่มี CubeMX</p>
+    <div class="badges">
+      <span class="badge">flash <b>11.5 KB</b> / 512 KB</span>
+      <span class="badge">RAM <b>5.5 KB</b> / 128 KB</span>
+      <span class="badge"><b>3 โหมด</b> CLASSIC · TWIN · WALL</span>
+      <span class="badge">interrupt <b>9 ตัว</b></span>
+      <span class="badge">MISRA <b>29 rule</b></span>
+      <span class="badge">คอมไพล์ <b>0 warning</b></span>
+      <span class="badge">ทดสอบบนบอร์ด <b>ผ่าน 11/11</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2><span class="n">01</span> เกมเป็นยังไง</h2>
+  <p class="sub">งูเลื้อยตลอดเวลาไม่หยุด ผู้เล่นเปลี่ยนได้แค่ทิศ · กินอาหารแล้วตัวยาวขึ้น · ชนกำแพงหรือชนตัวเอง = จบทันที (ชีวิตเดียว)</p>
+
+  <div class="screen"> SCORE 0090  LEN 012  SPD 4  WALL
+ BEST  0100  PLAYING
+ ##################################
+ #                                #
+ #         ooooo         X        #
+ #             o                  #
+ #    X        o       *          #
+ #         @oooo              X   #
+ #                                #
+ ##################################
+ @ head   o body   * food   X กำแพง
+ D2 start D3 new D4 pause D5 mode</div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>จอภาพ</h4>
+      <p>หน้าต่าง PuTTY 115200 8N1 — terminal คือจอของเกมจริง ๆ ไม่ใช่ที่พิมพ์ debug</p>
+    </div>
+    <div class="card">
+      <h4>บังคับทิศ</h4>
+      <p>joystick KY-023 อ่าน 2 แกนผ่าน ADC + DMA มี deadzone ±700 นับ</p>
+    </div>
+    <div class="card">
+      <h4>ปรับความเร็ว</h4>
+      <p>potentiometer บน shield 5 ระดับ หมุนเปลี่ยนได้ระหว่างเล่น เห็นผลทันทีในก้าวถัดไป</p>
+    </div>
+    <div class="card">
+      <h4>แสดงผลเสริม</h4>
+      <p>LED 4 ดวงบอกสถานะเกม · 7-segment โชว์ระดับความเร็วผ่าน BCD decoder</p>
+    </div>
+  </div>
+
+  <h3>สามโหมด</h3>
+  <p>กด <code>D5</code> วนเลือกได้สามโหมด ทั้งสามใช้ <code>AppSnake_Step()</code> ตัวเดียวกัน
+     ต่างกันแค่สิ่งที่ทำ<b>หลังกินอาหาร</b> ชื่อโหมดโชว์มุมขวาบนตลอดเวลา</p>
+  <div class="tablescroll"><table>
+    <thead><tr><th class="mono">โหมด</th><th>กติกาตอนกินอาหาร</th><th>สิ่งที่เพิ่มในโค้ด</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">CLASSIC</td><td>ตัวยาวขึ้น แล้วเดินต่อไปทางเดิม</td><td class="mono">&mdash;</td></tr>
+      <tr><td class="mono">TWIN</td><td><b>สลับหัวกับหาง</b> — หางเดิมกลายเป็นหัว งูวิ่งกลับทางตรงข้าม ผู้เล่นต้องบังคับอีกปลายทันที</td><td class="mono">Snake_SwapEnds()</td></tr>
+      <tr><td class="mono">WALL</td><td><b>ก้อนกำแพงโผล่มาหนึ่งก้อน</b> (<code>X</code>) ชนแล้วตายเหมือนชนขอบสนาม สูงสุด 10 ก้อนต่อเกม</td><td class="mono">Snake_PlaceWall()</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>ห้ามสลับโหมดกลางเกม</b> — ปุ่ม D5 รับเฉพาะตอน IDLE / GAME OVER / WIN
+    เพราะกติกาจะเปลี่ยนทั้งที่งูกำลังวิ่งอยู่ · โหมดที่เลือกไว้ไม่หายตอนเริ่มเกมใหม่</div>
+
+  <h3>LED บอกอะไร</h3>
+  <div class="tablescroll"><table>
+    <thead><tr><th>สถานะ</th><th>LED</th><th>สถานะ</th><th>LED</th></tr></thead>
+    <tbody>
+      <tr><td>IDLE รอเริ่ม</td><td>เขียวกระพริบช้า 500 ms</td><td>GAME OVER</td><td>แดงนิ่ง</td></tr>
+      <tr><td>PLAYING</td><td>เขียวนิ่ง</td><td>WIN เต็มกระดาน</td><td>เขียว+เหลืองกระพริบเร็ว</td></tr>
+      <tr><td>PAUSED</td><td>เหลืองนิ่ง</td><td><i>กินอาหาร</i></td><td>ฟ้าแวบ 150 ms (ซ้อนทับได้)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>ผังสถานะ</h3>
+  <pre><code>            กด D2
+  IDLE ───────────────► PLAYING ───── ชน ─────► GAME_OVER
+                          │  ▲                      │
+                 กด D4    │  │ กด D4                │ กด D3 หรือ D2
+                          ▼  │                      │
+                       PAUSED ──── กด D3 ───────────┘</code></pre>
+  <div class="note">ระหว่าง <b>PLAYING ไม่มีปุ่มไหนรีสตาร์ตได้เลย</b> — กันเผลอกดแล้วเกมที่เล่นมาหายทั้งกระดาน
+  ถ้าจะเลิกกลางคันต้อง D4 พักก่อนแล้วค่อย D3 เป็นสองจังหวะโดยตั้งใจ</div>
+</section>
+
+<section>
+  <h2><span class="n">02</span> ตอบโจทย์ครบทุกข้อ</h2>
+  <p class="sub">ทุกข้อเป็นของที่เกมขาดไม่ได้จริง ไม่มีอันไหนใส่มาเพื่อให้ครบเกณฑ์</p>
+  <div class="tablescroll"><table>
+    <thead><tr><th>ข้อกำหนด</th><th>ทำด้วย</th><th class="mono">ไฟล์</th><th>ผล</th></tr></thead>
+    <tbody>
+      <tr><td>GPIO</td><td>LED 4 ดวง (สถานะ) + ปุ่ม 3 ปุ่ม + 7-segment ผ่าน BCD decoder</td><td class="mono">drv_led · drv_seg</td><td class="ok">✓</td></tr>
+      <tr><td>UART ห้าม polling</td><td><b>เป็นจอภาพของเกม</b> ส่งทั้งเฟรมผ่าน DMA1 Stream6 + TC interrupt</td><td class="mono">drv_uart · app_render</td><td class="ok">✓</td></tr>
+      <tr><td>ADC ห้าม polling</td><td>3 ช่อง (joystick 2 แกน + pot) DMA2 Stream0 circular ทริกด้วย TIM2 TRGO + OVR interrupt</td><td class="mono">drv_adc · app_input</td><td class="ok">✓</td></tr>
+      <tr><td>EXTI อย่างน้อย 1</td><td>3 สาย EXTI15_10 / EXTI3 / EXTI9_5 กันเด้ง 50 ms ด้วย SysTick</td><td class="mono">drv_input</td><td class="ok">✓</td></tr>
+      <tr><td>Peripheral เพิ่มอีก 1</td><td><b>TIM2</b> ฐานเวลา 25 ms + ทริก ADC ด้วย TRGO · IWDG 500 ms เป็นของแถม</td><td class="mono">drv_tick · drv_wdg</td><td class="ok">✓</td></tr>
+      <tr><td>MISRA-C ≥ 22 rule</td><td>check sheet 29 rule · คอมไพล์ด้วยแฟล็กชุดเต็มได้ 0 warning</td><td class="mono">MISRA_CheckSheet_TH.md</td><td class="ok">✓</td></tr>
+      <tr><td>แยก App / Driver</td><td>App ไม่แตะรีจิสเตอร์เลย · Driver ไม่รู้จักกติกาเกมเลย</td><td class="mono">ทั้งโปรเจกต์</td><td class="ok">✓</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>จุดที่ต่างจากโปรเจกต์ทั่วไป:</b> UART ไม่ใช่แค่ debug print แต่<b>เป็นจอภาพ</b>
+  และ ADC ไม่ใช่แค่วัดค่าไปโชว์ แต่<b>เป็นตัวบังคับเกม</b> — ถ้าถอดอันใดอันหนึ่งออก เกมเล่นไม่ได้เลย</div>
+</section>
+
+<section>
+  <h2><span class="n">03</span> สถาปัตยกรรม</h2>
+  <p class="sub">แยกสองชั้นเด็ดขาด — App ไม่ include header ภายในของ Driver (<code>drv_board.h</code>, <code>drv_gpio.h</code>, <code>drv_mcu.h</code>) และชั้น Driver ไม่มีคำว่า snake/score/food แม้แต่คำเดียว</p>
+
+
+  <h3>block diagram</h3>
+  <p class="sub" style="margin-bottom:14px">สัญญาณวิ่งลงจากฮาร์ดแวร์ ผ่าน Driver เข้า Application
+     แล้ววิ่งกลับลงไปออกฮาร์ดแวร์อีกฝั่ง — ไม่มีลูกศรไหนข้ามชั้น</p>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 700" role="img" aria-label="block diagram ของระบบ">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#8A9992"/></marker>
+      <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1E7A4D"/></marker>
+    </defs>
+
+    <text class="dg-band" x="96" y="56" text-anchor="end">HARDWARE IN</text>
+    <text class="dg-band" x="96" y="186" text-anchor="end">DRIVER</text>
+    <text class="dg-band" x="96" y="326" text-anchor="end">APPLICATION</text>
+    <text class="dg-band" x="96" y="422" text-anchor="end">ORCHESTRATOR</text>
+    <text class="dg-band" x="96" y="532" text-anchor="end">DRIVER</text>
+    <text class="dg-band" x="96" y="652" text-anchor="end">HARDWARE OUT</text>
+
+    <rect class="dg-hw" x="110" y="16" width="280" height="72" rx="7"/>
+    <text class="dg-t" x="126" y="40">joystick + potentiometer</text>
+    <text class="dg-d" x="126" y="60">PB0 · PC0 · PA4  (แอนะล็อก 3 ช่อง)</text>
+    <text class="dg-d" x="126" y="76">KY-023 จ่ายไฟ 3V3 เท่านั้น</text>
+
+    <rect class="dg-hw" x="415" y="16" width="280" height="72" rx="7"/>
+    <text class="dg-t" x="431" y="40">ปุ่ม D2 D3 D4 D5</text>
+    <text class="dg-d" x="431" y="60">PA10 · PB3 · PB5 · PB4</text>
+    <text class="dg-d" x="431" y="76">active-low ต้องเปิด pull-up</text>
+
+    <rect class="dg-hw" x="720" y="16" width="280" height="72" rx="7"/>
+    <text class="dg-t" x="736" y="40">TIM2 — ฐานเวลาเดียวของระบบ</text>
+    <text class="dg-d" x="736" y="60">HSI 16 MHz · PSC 1599 · ARR 249</text>
+    <text class="dg-d" x="736" y="76">คาบ 25 ms</text>
+
+    <path class="dg-l" d="M250,88 L250,130" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M555,88 L555,130" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M900,88 L900,130" marker-end="url(#ar)"/>
+    <path class="dg-la" d="M790,88 L790,112 L262,112 L262,130" marker-end="url(#arg)"/>
+    <rect class="dg-chip" x="590" y="101" width="178" height="15" rx="3"/>
+    <text class="dg-lbl" x="597" y="112" fill="#1E7A4D">TRGO — ฮาร์ดแวร์ล้วน ไม่ใช้ IRQ</text>
+
+    <rect class="dg-box" x="110" y="136" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="126" y="160">drv_adc</text>
+    <text class="dg-d" x="126" y="180">ADC1 สแกน IN8 → IN10 → IN4</text>
+    <text class="dg-d" x="126" y="196">DMA2 Stream0 circular</text>
+    <text class="dg-d" x="126" y="212">OVR interrupt กู้สถานะเอง</text>
+
+    <rect class="dg-box" x="415" y="136" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="431" y="160">drv_input</text>
+    <text class="dg-d" x="431" y="180">EXTI 4 สาย · IRQ 4 ตัว</text>
+    <text class="dg-d" x="431" y="196">EXTI15_10 · EXTI3 · EXTI4 · EXTI9_5</text>
+    <text class="dg-d" x="431" y="212">กันเด้ง 50 ms ด้วยเวลาจาก SysTick</text>
+
+    <rect class="dg-box" x="720" y="136" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="736" y="160">drv_tick</text>
+    <text class="dg-d" x="736" y="180">update interrupt → นับ tick</text>
+    <text class="dg-d" x="736" y="196">TRGO → สั่ง ADC แปลงค่า</text>
+    <text class="dg-d" x="736" y="212">ตัวเดียวคุมทั้งจังหวะเกมและ ADC</text>
+
+    <path class="dg-l" d="M250,228 L250,270" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M555,228 L555,270" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M860,228 L860,270" marker-end="url(#ar)"/>
+
+    <rect class="dg-box" x="110" y="276" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="126" y="300">app_input</text>
+    <text class="dg-d" x="126" y="320">ค่าดิบ → ทิศทาง (deadzone 700)</text>
+    <text class="dg-d" x="126" y="336">pot → ระดับความเร็ว 1-5</text>
+    <text class="dg-d" x="126" y="352">สลับแกนและกลับขั้วตามที่วัดจริง</text>
+
+    <rect class="dg-acc" x="415" y="276" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="431" y="300">app_game + app_snake</text>
+    <text class="dg-d" x="431" y="320">state machine 5 สถานะ · 3 โหมด</text>
+    <text class="dg-d" x="431" y="336">ring buffer 1024 B + ตารางช่อง 512 B</text>
+    <text class="dg-d" x="431" y="352">เดิน · ชน · กิน · วางอาหาร/กำแพง</text>
+
+    <rect class="dg-box" x="720" y="276" width="280" height="92" rx="7"/>
+    <text class="dg-t" x="736" y="300">app_render</text>
+    <text class="dg-d" x="736" y="320">frame buffer 895 ไบต์</text>
+    <text class="dg-d" x="736" y="336">ANSI ESC[H ทับของเดิม ไม่ล้างจอ</text>
+    <text class="dg-d" x="736" y="352">UART ไม่ว่าง = ข้ามเฟรม ไม่รอ</text>
+
+    <path class="dg-l" d="M390,322 L409,322" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M695,322 L714,322" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M555,368 L555,386" marker-end="url(#ar)"/>
+
+    <rect class="dg-acc" x="110" y="392" width="890" height="52" rx="7"/>
+    <text class="dg-t" x="126" y="414">app_main</text>
+    <text class="dg-d" x="126" y="433">ลำดับเปิด driver · แจก tick 25 ms · อ่านปุ่ม · คุม LED และ 7-segment · เตะ watchdog ทุกรอบของ main loop</text>
+
+    <path class="dg-l" d="M250,444 L250,486" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M555,444 L555,486" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M860,444 L860,486" marker-end="url(#ar)"/>
+
+    <rect class="dg-box" x="110" y="492" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="126" y="516">drv_led</text>
+    <text class="dg-d" x="126" y="536">GPIO output 4 ขา · active-high</text>
+
+    <rect class="dg-box" x="415" y="492" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="431" y="516">drv_seg</text>
+    <text class="dg-d" x="431" y="536">BCD decoder 4 บิต · เขียนเมื่อค่าเปลี่ยน</text>
+
+    <rect class="dg-box" x="720" y="492" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="736" y="516">drv_uart</text>
+    <text class="dg-d" x="736" y="536">USART2 TX · DMA1 Stream6 · TC IRQ</text>
+
+    <path class="dg-l" d="M250,554 L250,606" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M555,554 L555,606" marker-end="url(#ar)"/>
+    <path class="dg-l" d="M860,554 L860,606" marker-end="url(#ar)"/>
+
+    <rect class="dg-hw" x="110" y="612" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="126" y="636">LED 4 ดวง</text>
+    <text class="dg-d" x="126" y="656">เขียว เหลือง แดง ฟ้า = สถานะเกม</text>
+
+    <rect class="dg-hw" x="415" y="612" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="431" y="636">7-segment</text>
+    <text class="dg-d" x="431" y="656">โชว์ระดับความเร็ว 1-5</text>
+
+    <rect class="dg-hw" x="720" y="612" width="280" height="62" rx="7"/>
+    <text class="dg-t" x="736" y="636">จอ terminal</text>
+    <text class="dg-d" x="736" y="656">PuTTY หรือ Snake_Web.html</text>
+  </svg>
+  </div>
+
+  <h3>ผังสถานะ</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 650" role="img" aria-label="ผังสถานะของเกม">
+    <defs>
+      <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#8A9992"/></marker>
+    </defs>
+
+    <circle cx="171" cy="22" r="6" fill="#16201C"/>
+    <path class="dg-l" d="M171,28 L171,50" marker-end="url(#ar2)"/>
+    <text class="dg-lbl" x="185" y="26">เปิดเครื่อง</text>
+
+    <rect class="dg-box" x="56" y="56" width="230" height="96" rx="7"/>
+    <text class="dg-t" x="72" y="80">IDLE</text>
+    <text class="dg-d" x="72" y="100">รอกด D2 เริ่มเกม</text>
+    <text class="dg-d" x="72" y="116">โชว์ค่า ADC ดิบไว้ตรวจการต่อสาย</text>
+    <text class="dg-d" x="72" y="132">เลือกโหมดด้วย D5 ได้ตรงนี้</text>
+
+    <rect class="dg-acc" x="385" y="56" width="230" height="96" rx="7"/>
+    <text class="dg-t" x="401" y="80">PLAYING</text>
+    <text class="dg-d" x="401" y="100">งูเดินตามจังหวะที่ pot ตั้งไว้</text>
+    <text class="dg-d" x="401" y="116">joystick เปลี่ยนทิศ ห้ามกลับหลัง</text>
+    <text class="dg-d" x="401" y="132">D5 ใช้ไม่ได้ · D3 ก็รีสตาร์ตไม่ได้</text>
+
+    <rect class="dg-box" x="714" y="56" width="230" height="96" rx="7"/>
+    <text class="dg-t" x="730" y="80">GAME_OVER</text>
+    <text class="dg-d" x="730" y="100">ชีวิตเดียว จบทันที</text>
+    <text class="dg-d" x="730" y="116">อัปเดต BEST ถ้าทำได้มากกว่าเดิม</text>
+    <text class="dg-d" x="730" y="132">LED แดงค้าง</text>
+
+    <rect class="dg-box" x="385" y="252" width="230" height="78" rx="7"/>
+    <text class="dg-t" x="401" y="276">PAUSED</text>
+    <text class="dg-d" x="401" y="296">งูหยุด เวลาหยุด</text>
+    <text class="dg-d" x="401" y="312">LED เหลืองค้าง</text>
+
+    <rect class="dg-box" x="714" y="252" width="230" height="78" rx="7"/>
+    <text class="dg-t" x="730" y="276">WIN</text>
+    <text class="dg-d" x="730" y="296">งูเต็มกระดาน 512 ช่อง</text>
+    <text class="dg-d" x="730" y="312">เขียว+เหลืองกระพริบเร็ว</text>
+
+    <path class="dg-l" d="M286,104 L379,104" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="294" y="86" width="56" height="15" rx="3"/>
+    <text class="dg-lbl" x="300" y="97">กด D2</text>
+
+    <path class="dg-l" d="M615,104 L708,104" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="618" y="86" width="90" height="15" rx="3"/>
+    <text class="dg-lbl" x="624" y="97">ชนอะไรก็ตาม</text>
+
+    <path class="dg-l" d="M455,152 L455,246" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="378" y="192" width="56" height="15" rx="3"/>
+    <text class="dg-lbl" x="384" y="203">กด D4</text>
+
+    <path class="dg-l" d="M545,246 L545,158" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="552" y="214" width="132" height="15" rx="3"/>
+    <text class="dg-lbl" x="558" y="225">D4 เล่นต่อ · D3 เริ่มใหม่</text>
+
+    <path class="dg-l" d="M585,152 L585,200 L829,200 L829,246" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="700" y="178" width="86" height="15" rx="3"/>
+    <text class="dg-lbl" x="706" y="189">เต็มกระดาน</text>
+
+    <path class="dg-l" d="M860,56 L860,26 L500,26 L500,50" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="596" y="18" width="126" height="15" rx="3"/>
+    <text class="dg-lbl" x="602" y="29">กด D3 หรือ D2 เริ่มใหม่</text>
+
+    <path class="dg-l" d="M790,330 L790,374 L330,374 L330,128 L379,128" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="430" y="366" width="126" height="15" rx="3"/>
+    <text class="dg-lbl" x="436" y="377">กด D3 หรือ D2 เริ่มใหม่</text>
+
+    <rect class="dg-panel" x="56" y="412" width="888" height="212" rx="9"/>
+    <text class="dg-t" x="76" y="440">กด D5 วนโหมด</text>
+    <text class="dg-d" x="76" y="459">ทำได้เฉพาะตอน IDLE / GAME_OVER / WIN — โหมดที่เลือกไว้ไม่หายตอนเริ่มเกมใหม่</text>
+
+    <rect class="dg-box" x="86" y="478" width="246" height="86" rx="7"/>
+    <text class="dg-t" x="102" y="502">CLASSIC</text>
+    <text class="dg-d" x="102" y="522">กินแล้วตัวยาวขึ้น</text>
+    <text class="dg-d" x="102" y="538">เดินต่อไปทางเดิม</text>
+
+    <rect class="dg-box" x="377" y="478" width="246" height="86" rx="7"/>
+    <text class="dg-t" x="393" y="502">TWIN</text>
+    <text class="dg-d" x="393" y="522">กินแล้วสลับหัวกับหาง</text>
+    <text class="dg-d" x="393" y="538">ต้องบังคับอีกปลายทันที</text>
+
+    <rect class="dg-box" x="668" y="478" width="246" height="86" rx="7"/>
+    <text class="dg-t" x="684" y="502">WALL</text>
+    <text class="dg-d" x="684" y="522">กินแล้วมีก้อนกำแพงโผล่</text>
+    <text class="dg-d" x="684" y="538">สูงสุด 10 ก้อน ชนแล้วตาย</text>
+
+    <path class="dg-l" d="M332,521 L371,521" marker-end="url(#ar2)"/>
+    <path class="dg-l" d="M623,521 L662,521" marker-end="url(#ar2)"/>
+    <path class="dg-l" d="M791,564 L791,592 L209,592 L209,570" marker-end="url(#ar2)"/>
+    <rect class="dg-chip" x="462" y="584" width="76" height="15" rx="3"/>
+    <text class="dg-lbl" x="468" y="595">วนกลับ D5</text>
+  </svg>
+  </div>
+
+  <h3>ชั้น Application</h3>
+  <div class="tablescroll"><table>
+    <thead><tr><th class="mono">ไฟล์</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">app_main.c</td><td>เปิด driver ตามลำดับ · แจก tick · อ่านปุ่ม · คุม LED กับ 7-segment · เตะ watchdog</td></tr>
+      <tr><td class="mono">app_game.c</td><td>state machine 5 สถานะ · คะแนน/BEST · จังหวะก้าว · วนเลือกโหมดด้วย D5 · สั่งวาดฉาก</td></tr>
+      <tr><td class="mono">app_snake.c</td><td>ring buffer + ตาราง occupancy · เดิน ชน กิน วางอาหาร · สลับหัว-หาง (TWIN) · วางก้อนกำแพง (WALL)</td></tr>
+      <tr><td class="mono">app_render.c</td><td>frame buffer 895 ไบต์ · วาดกำแพง งู อาหาร หัวจอ · ส่งออก UART</td></tr>
+      <tr><td class="mono">app_input.c</td><td>joystick → ทิศ (deadzone) · pot → ระดับความเร็ว</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>ชั้น Driver</h3>
+  <div class="tablescroll"><table>
+    <thead><tr><th class="mono">ไฟล์</th><th>หน้าที่</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">drv_adc.c</td><td>ADC1 สแกน 3 ช่อง (IN8 → IN10 → IN4) · DMA2 Stream0 circular · ทริกด้วย TIM2 TRGO · OVR interrupt กู้สถานะเอง</td></tr>
+      <tr><td class="mono">drv_uart.c</td><td>USART2 TX ผ่าน DMA1 Stream6 · TC interrupt ปลด busy · ไม่บล็อก</td></tr>
+      <tr><td class="mono">drv_input.c</td><td>EXTI 4 สาย (รวม EXTI4 ของปุ่ม D5) · กันเด้ง 50 ms ด้วยเวลาจาก SysTick</td></tr>
+      <tr><td class="mono">drv_tick.c</td><td>TIM2 คาบ 25 ms · update interrupt + TRGO สั่ง ADC ด้วยฮาร์ดแวร์</td></tr>
+      <tr><td class="mono">drv_seg.c</td><td>7-segment ผ่าน BCD decoder 4 บิต</td></tr>
+      <tr><td class="mono">drv_rand.c</td><td>xorshift32 เขียนเอง (MISRA 21.24 ห้าม <code>rand</code>) · seed จากบิตล่างของ ADC</td></tr>
+      <tr><td class="mono">drv_wdg.c</td><td>IWDG 500 ms + อ่าน/ล้างธง IWDGRSTF + หยุดนับตอน debugger หยุด core</td></tr>
+      <tr><td class="mono">drv_led · drv_gpio · drv_system · drv_critical</td><td>GPIO, SysTick 1 ms, critical section</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="n">04</span> ตัวงูเก็บข้อมูลยังไง</h2>
+  <p class="sub">เก็บสองชุดคู่กัน เพื่อให้เช็กชนตัวเองเป็น O(1)</p>
+
+  <pre><code>static SnakeCell_t s_body[512];      /* ring buffer   1024 ไบต์ */
+static uint8_t     s_occupancy[512]; /* 0 ว่าง 1 งู 2 อาหาร  512 ไบต์ */
+static uint16_t    s_headIndex;
+static uint16_t    s_length;</code></pre>
+
+  <p><b>ring buffer</b> บอก <i>ลำดับ</i> ว่าหางไหนจะหายก่อน ส่วน <b>occupancy</b> บอก <i>ช่องนั้นมีอะไร</i>
+  ทำให้ตรวจชนตัวเองได้ในขั้นตอนเดียว แทนที่จะไล่ดูทั้งตัวงูที่ยาวได้ถึง 512 ช่อง
+  เปลืองแรม 512 ไบต์แลกความเร็ว</p>
+
+  <h3>หนึ่งก้าวของงู</h3>
+  <pre><code>1. รับทิศที่ขอ → ถ้าเป็นทิศตรงข้ามกับที่วิ่งอยู่ ให้เมิน
+2. คำนวณช่องถัดไปจากหัว
+3. ออกนอกกรอบ?           → ตาย
+4. occupancy == ตัวงู?    → ตาย   ⚠ ยกเว้นช่องหางที่กำลังจะหายรอบนี้
+5. occupancy == อาหาร?    → length++, วางอาหารใหม่, ไฟฟ้าแวบ
+   ไม่ใช่                 → ลบหาง
+6. เขียนหัวใหม่ลง ring buffer + occupancy</code></pre>
+
+  <div class="note warn"><b>ข้อ 4 คือกับดักคลาสสิกของเกมงู</b> — ช่องหางต้องถือว่าว่าง เพราะหางจะเลื่อนออกในก้าวเดียวกัน
+  ถ้าลืมข้อยกเว้นนี้ งูจะตายทั้งที่ไม่ควรตาย ตอนเดินตามหางตัวเอง</div>
+
+  <div class="note">การวางอาหารใช้วิธี <b>นับช่องว่างก่อน แล้วสุ่มว่าเอาช่องว่างลำดับที่เท่าไหร่</b> แล้วไล่หา
+  = O(512) ต่อการกิน 1 ครั้ง · ห้ามสุ่มพิกัดซ้ำไปเรื่อย ๆ จนกว่าจะเจอช่องว่าง เพราะตอนงูยาวจะสุ่มไม่จบ</div>
+</section>
+
+<section>
+  <h2><span class="n">05</span> จังหวะเวลาและการวาดจอ</h2>
+  <p class="sub">ฐานเวลาเดียวคือ TIM2 คาบ 25 ms ใช้ทั้งทริก ADC นับจังหวะก้าว และนับไฟกระพริบ</p>
+
+  <div class="tablescroll"><table>
+    <thead><tr><th>SPEED</th><th class="mono">ค่า POT</th><th class="mono">tick ต่อก้าว</th><th class="mono">เวลาต่อก้าว</th><th>งูเดิน</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td class="mono">0 – 818</td><td class="mono">10</td><td class="mono">250 ms</td><td>4 ก้าว/วินาที</td></tr>
+      <tr><td>2</td><td class="mono">819 – 1637</td><td class="mono">8</td><td class="mono">200 ms</td><td>5 ก้าว/วินาที</td></tr>
+      <tr><td>3</td><td class="mono">1638 – 2456</td><td class="mono">6</td><td class="mono">150 ms</td><td>6.7 ก้าว/วินาที</td></tr>
+      <tr><td>4</td><td class="mono">2457 – 3275</td><td class="mono">5</td><td class="mono">125 ms</td><td>8 ก้าว/วินาที</td></tr>
+      <tr><td>5</td><td class="mono">3276 – 4095</td><td class="mono">4</td><td class="mono">100 ms</td><td>10 ก้าว/วินาที</td></tr>
+    </tbody>
+  </table></div>
+
+  <p><b>เฟรมหนึ่ง = 895 ไบต์</b> (<code>ESC[?25l</code> + <code>ESC[H</code> + 24 บรรทัด บรรทัดละ 35 ตัวอักษร)
+  ส่ง <b>78 ms</b> ที่ 115200 — สั้นกว่าก้าวที่เร็วที่สุด 100 ms</p>
+
+  <h3>หกเทคนิคที่ทำให้ภาพไม่กะพริบ</h3>
+  <ul>
+    <li>ใช้ <code>ESC[H</code> เลื่อนเคอร์เซอร์กลับมุมบนซ้ายแล้ววาดทับ — <b>ไม่ใช้ <code>ESC[2J</code> ล้างจอทุกเฟรม</b></li>
+    <li>ทุกบรรทัดเติมช่องว่างให้เต็ม 35 ตัวอักษรเสมอ ของเดิมบนจอจึงถูกทับหมด</li>
+    <li><b>บรรทัดสุดท้ายไม่ใส่ CR LF</b> ไม่งั้นเคอร์เซอร์ตกไปบรรทัดที่ 25 แล้วดันจอเลื่อน</li>
+    <li>ส่ง <code>ESC[?25l</code> ซ้ำทุกเฟรม เผื่อเปิด terminal หลังบอร์ดบูตไปแล้ว</li>
+    <li>ถ้า UART ยังส่งเฟรมก่อนไม่จบ ให้<b>ข้ามเฟรมนั้น ไม่รอ</b> — รอบหน้าของ main loop ลองใหม่เอง</li>
+    <li>วาดซ้ำทุก 250 ms แม้งูไม่ขยับ เพื่อให้ SPEED และข้อความสถานะอัปเดตตอน IDLE/PAUSED</li>
+  </ul>
+
+  <p><b>แรมที่ใช้:</b> body 1024 + occupancy 512 + frame 895 + buffer UART 1024 + ของเดิม ≈ 5.5 KB จาก 128 KB</p>
+</section>
+
+<section>
+  <h2><span class="n">06</span> ผังขาและการต่อสาย</h2>
+  <p class="sub">shield บังหัว Arduino หมด สายเพิ่มจึงต้องไปที่ Morpho CN7</p>
+
+  <div class="tablescroll"><table>
+    <thead><tr><th>อุปกรณ์</th><th class="mono">ขา</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>
+      <tr><td>Joystick แกนตั้ง</td><td class="mono">PB0 = ADC1_IN8</td><td>CN7 แถวใน ตำแหน่งที่ 3 จากปลายไกล USB</td></tr>
+      <tr><td>Joystick แกนนอน</td><td class="mono">PC0 = ADC1_IN10</td><td>CN7 แถวใน ตำแหน่งที่ 1 (ล่างสุด)</td></tr>
+      <tr><td>Joystick VCC / GND</td><td class="mono">3V3 / GND</td><td>header AHT10 ขาที่ 1 และ 2 — <b>ห้ามใช้ 5V</b></td></tr>
+      <tr><td>Pot ปรับความเร็ว</td><td class="mono">PA4 = ADC1_IN4</td><td>มีบน shield อยู่แล้ว</td></tr>
+      <tr><td>UART TX (จอภาพ)</td><td class="mono">PA2 (AF7)</td><td>USART2 → ST-Link VCP</td></tr>
+      <tr><td>ปุ่ม D2 / D3 / D4</td><td class="mono">PA10 / PB3 / PB5</td><td>EXTI15_10 / EXTI3 / EXTI9_5 · active-low</td></tr>
+      <tr><td>LED เขียว/เหลือง/แดง/ฟ้า</td><td class="mono">PB6 / PA7 / PA6 / PA5</td><td>GPIO out, active-high</td></tr>
+      <tr><td>7-segment (SPEED)</td><td class="mono">PC7 · PA8 · PB10 · PA9</td><td>2^0 → 2^3 ผ่าน BCD decoder</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>นับขาบน CN7</h3>
+  <p>ใช้คอลัมน์ <b>ด้านใน</b> (ฝั่งที่ชิด shield) นับจาก<b>ปลายล่าง</b> คือปลายที่ไกล USB ฝั่งเดียวกับปุ่ม D2-D5</p>
+  <pre><code>  ตำแหน่ง 4  PA4 = A2   ← pot บน shield ใช้อยู่ ห้ามต่อทับ
+  ตำแหน่ง 3  PB0 = A3   ← VRx
+  ตำแหน่ง 2  PC1 = A4      เว้นว่าง
+  ตำแหน่ง 1  PC0 = A5   ← VRy  (ขาล่างสุดของแถว)</code></pre>
+  <div class="note">จำง่าย ๆ: <b>6 ขาล่างสุดของคอลัมน์ในคือ A5 → A0 ไล่จากล่างขึ้นบน</b> ·
+  ยืนยันได้โดยพลิกบอร์ดดูชื่อขาที่ ST พิมพ์ไว้ด้านหลัง</div>
+  <div class="note warn"><b>โมดูลที่เขียนว่า <code>+5V</code> ไม่ได้แปลว่าต้องใช้ 5V</b> — KY-023 เป็น potentiometer 10k
+  สองตัวต่อเป็นตัวแบ่งแรงดัน ไม่มีไอซีเลย จ่าย 3.3V ทำงานปกติและได้ช่วง 0-3.3V ตรงกับ ADC พอดี
+  ถ้าจ่าย 5V ก้านจะใช้ได้ไม่เต็มระยะ (เกิน 3.3V อ่านได้ 4095 เท่ากันหมด) และเกินสเปกขา MCU</div>
+</section>
+
+<section>
+  <h2><span class="n">07</span> ผลทดสอบบนบอร์ดจริง</h2>
+  <p class="sub">แฟลชด้วย STM32_Programmer_CLI → อ่าน UART ด้วยสคริปต์ PowerShell เก็บเป็นไฟล์ไบนารี →
+     ถอดเฟรมด้วย Python แล้ววิเคราะห์เส้นทางหัวงู สถานะ และค่า ADC จากข้อมูลจริง ไม่ได้ดูด้วยตาอย่างเดียว</p>
+
+  <div class="tablescroll"><table>
+    <thead><tr><th class="mono">#</th><th>เรื่อง</th><th>ผล</th><th>หลักฐาน</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td>เฟรมออก UART ครบ ไม่ขาด</td><td class="ok">ผ่าน</td><td>ทุกเฟรมยาวเท่ากันเป๊ะ</td></tr>
+      <tr><td class="mono">2</td><td>ลำดับบูต</td><td class="ok">ผ่าน</td><td><code>ESC[2J ESC[H ESC[?25l</code> ตอนบูต หลังจากนั้นมีแต่ <code>ESC[H</code></td></tr>
+      <tr><td class="mono">3</td><td>ADC 3 ช่องผ่าน DMA+TRGO</td><td class="ok">ผ่าน</td><td>PB0 และ PC0 กวาดเต็มช่วง 0-4095</td></tr>
+      <tr><td class="mono">4</td><td>pot → SPEED</td><td class="ok">ผ่าน</td><td>POT 10-2323 → SPEED เปลี่ยน 1→2→3 ตามสูตร</td></tr>
+      <tr><td class="mono">5</td><td>EXTI ทั้ง 3 ปุ่ม</td><td class="ok">ผ่าน</td><td>อ่าน <code>s_lastEdgeMs[3]</code> ผ่าน SWD ได้ 70630 / 110785 / 81951 ms</td></tr>
+      <tr><td class="mono">6</td><td>state machine</td><td class="ok">ผ่าน</td><td>จับได้ครบวง IDLE → PLAYING → GAME OVER → PLAYING ซ้ำ 4 รอบ</td></tr>
+      <tr><td class="mono">7</td><td>ชนกำแพงแล้วตาย</td><td class="ok">ผ่าน</td><td>หัวงูหยุดที่ x=31 ชิดกำแพงขวาพอดี</td></tr>
+      <tr><td class="mono">8</td><td>IWDG ไม่รีเซ็ตมั่ว</td><td class="ok">ผ่าน</td><td>วิ่งต่อเนื่องเกิน 185 วินาทีโดยไม่มีข้อความแจ้ง</td></tr>
+      <tr><td class="mono">9</td><td>บังคับทิศด้วย joystick</td><td class="ok">ผ่าน</td><td>เจอบั๊กแกนสลับ แก้แล้ว ยืนยันบนบอร์ดจริง</td></tr>
+      <tr><td class="mono">10</td><td>กินอาหาร / คะแนน / ไฟฟ้าแวบ</td><td class="ok">ผ่าน</td><td>ยืนยันบนบอร์ดจริง</td></tr>
+      <tr><td class="mono">11</td><td>PAUSE / RESUME (D4)</td><td class="ok">ผ่าน</td><td>ยืนยันบนบอร์ดจริง</td></tr>
+      <tr><td class="mono">12</td><td>IWDG รีเซ็ตเมื่อค้างจริง</td><td class="skip">ข้าม</td><td>ตั้งใจข้าม — peripheral ที่ใช้ตอบโจทย์คือ TIM2 อยู่แล้ว</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>ทดสอบตรรกะด้วยแบบจำลองบนพีซีด้วย</h3>
+  <p>เครื่องที่ใช้พัฒนาไม่มีคอมไพเลอร์ฝั่ง PC จึงลอก <code>app_snake.c</code> เป็น Python บรรทัดต่อบรรทัดแล้วทดสอบ</p>
+  <ul>
+    <li>กับดักช่องหาง — หัวเข้าช่องที่หางกำลังจะหาย ต้องไม่ตาย</li>
+    <li>ชนกำแพงทุกด้าน · ชนลำตัวช่วงกลางจริง ๆ ต้องตาย</li>
+    <li>สั่งกลับหลัง 180° ต้องถูกเมิน</li>
+    <li>วางอาหารได้แม้เหลือช่องว่างช่องเดียว · กระดานเต็ม = WIN</li>
+    <li>เล่นอัตโนมัติแบบ BFS 30 เกม <b>กิน 2,009 ครั้ง งูยาวถึง 95 ช่อง</b> ตรวจ invariant ทุกก้าว</li>
+  </ul>
+  <p>invariant ที่ตรวจ: ลำตัวไม่ทับกันเอง · จำนวนช่อง <code>BODY</code> เท่ากับ <code>length</code> พอดี ·
+  ทุกช่องของลำตัวถูกทำเครื่องหมายไว้จริง · อาหารไม่เกิน 1 เม็ด · ลำตัวต่อเนื่องกันทีละช่องไม่ขาดช่วง — <b>ผ่านทั้งหมด</b></p>
+</section>
+
+<section>
+  <h2><span class="n">08</span> บั๊กที่เจอตอนทดสอบจริง</h2>
+  <p class="sub">ห้าตัว แก้ครบแล้ว — ทุกตัวเป็นประเภทที่หาไม่เจอจากการอ่านโค้ดอย่างเดียว</p>
+
+  <div class="bugitem">
+    <h4><span class="tag">ตัวใหญ่สุด</span>แกน joystick สลับกันและขั้วกลับ</h4>
+    <p><b>อาการ:</b> ดันก้านขึ้น/ลงค้างไว้ งูไม่เลี้ยวเลย วิ่งขวาตรงไปชนกำแพงทุกครั้ง (<code>RIGHT×26</code> ทั้ง 3 รอบ)</p>
+    <div class="tablescroll"><table>
+      <thead><tr><th>ดันก้านไปทาง</th><th class="mono">PB0</th><th class="mono">PC0</th></tr></thead>
+      <tbody>
+        <tr><td>ปล่อยอยู่เฉย ๆ</td><td class="mono">~1988</td><td class="mono">~2000</td></tr>
+        <tr><td><b>ขึ้น</b></td><td class="mono"><b>→ 0</b></td><td class="mono">นิ่ง ~2000</td></tr>
+        <tr><td><b>ขวา</b></td><td class="mono">นิ่ง ~1990</td><td class="mono"><b>→ 0</b></td></tr>
+      </tbody>
+    </table></div>
+    <p><b>สาเหตุ:</b> PB0 รับแกนตั้ง PC0 รับแกนนอน สลับกับที่ตั้งชื่อไว้ และขั้วแกนนอนกลับด้วย
+    โค้ดจึงเห็นการดันขึ้นเป็น "แกนนอน" แล้วตัดสินเป็น LEFT ซึ่งโดนกฎห้ามกลับหลัง 180° เมินทิ้ง → งูไม่เลี้ยว</p>
+    <p><b>แก้:</b> ค่าตั้งสามตัว ไม่ต้องถอดสาย — <code>INPUT_SWAP_AXES 1U</code> · <code>INPUT_INVERT_X 1U</code> · <code>INPUT_INVERT_Y 0U</code></p>
+    <p><b>บทเรียน:</b> อย่าเชื่อชื่อขาที่ตั้งเอง ให้วัดจริง และควรมีบรรทัดโชว์ค่า ADC ดิบบนจอไว้ตั้งแต่แรก</p>
+  </div>
+
+  <div class="bugitem">
+    <h4><span class="tag">ไม่ใช่บั๊กโค้ด</span>จอไหลลงไม่หยุด</h4>
+    <p>เกิดตอนใช้ serialterminal.com แทน PuTTY — หน้าเว็บนั้นไม่ตีความรหัส ANSI จึงพิมพ์ <code>ESC[H</code>
+    ออกมาเป็นตัวอักษร (เห็นเป็น <code>▯[H SCORE 0000</code>) ทุกเฟรมเลยถูกต่อท้ายลงไปเรื่อย ๆ</p>
+    <p><b>ต้องใช้ terminal ที่รองรับ ANSI เท่านั้น</b> — PuTTY, Tera Term หรือ Windows Terminal</p>
+  </div>
+
+  <div class="bugitem">
+    <h4>จอเลื่อนขึ้น 1 บรรทัดทุกเฟรม</h4>
+    <p>เฟรมสูง 24 บรรทัดเท่าหน้าต่าง PuTTY พอดี การใส่ <code>CR LF</code> ปิดท้ายบรรทัดสุดท้ายทำให้เคอร์เซอร์
+    ตกไปบรรทัดที่ 25 จอเลยถูกดันเลื่อน — แก้โดยไม่ใส่ CR LF ให้บรรทัดสุดท้าย</p>
+  </div>
+
+  <div class="bugitem">
+    <h4>เคอร์เซอร์ค้างเป็นก้อนทึบท้ายจอ</h4>
+    <p><code>ESC[?25l</code> ส่งครั้งเดียวตอนบูต ถ้าเปิด PuTTY ทีหลัง session นั้นไม่เคยได้รับ —
+    แก้โดยส่งนำหน้าทุกเฟรม เปลืองเพิ่ม 6 ไบต์</p>
+  </div>
+
+  <div class="bugitem">
+    <h4>ช่องไฟบรรทัดดีบักเพี้ยน</h4>
+    <p><code>ADC X=1985Y= 1995</code> เลขคอลัมน์พลาดไป 1 ช่อง · แก้แล้วและเปลี่ยนป้ายเป็นชื่อขาจริง
+    <code>PB0= PC0= POT=</code> เพื่อไม่ให้สับสนระหว่างชื่อขากับแกนของก้านอีก</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">09</span> วิธี build และ run</h2>
+
+  <h3>แบบ CLI (ที่ใช้อยู่)</h3>
+  <pre><code>STM32_Programmer_CLI.exe -c port=SWD mode=UR -w Snake.elf -v -rst</code></pre>
+  <p>แล้วเปิด <b>PuTTY</b> → <code>Serial</code> · <code>COM10</code> · <code>115200</code>
+  (เลข COM เปลี่ยนทุกครั้งที่ถอด USB เช็กด้วย <code>-l</code>)</p>
+
+  <h3>แบบ STM32CubeIDE</h3>
+  <ol>
+    <li>เปิด <code>stm32cubeide.exe -data "D:\DownloadV2\Micro\Training_EmbeddedSystems"</code></li>
+    <li><code>File &gt; Import &gt; General &gt; Existing Projects into Workspace</code> ชี้ไปที่โฟลเดอร์ <code>Snake</code></li>
+    <li><b>ห้ามติ๊ก <code>Copy projects into workspace</code></b> — จะทำให้พาธ <code>../../Library/CMSIS</code> พัง</li>
+    <li><code>Ctrl+B</code> build · <code>Run As &gt; STM32 C/C++ Application</code></li>
+  </ol>
+  <div class="note">ไม่มีไฟล์ <code>.ioc</code> เพราะเขียนระดับรีจิสเตอร์ล้วน — ไม่ใช่โปรเจกต์พัง ·
+  ต้อง Disconnect PuTTY ก่อนกด Run ไม่งั้นพอร์ตชนกัน (COM เปิดได้ทีละโปรแกรมเดียว)</div>
+</section>
+
+<footer>
+  Snake บน NUCLEO-F411RE · bare-metal CMSIS · อัปเดต 2026-10-05 ·
+  รายละเอียดเต็มอยู่ที่ <code>PROGRESS.md</code> และ <code>MISRA_CheckSheet_TH.md</code>
+</footer>
+
+</div>
+</body>
+</html>

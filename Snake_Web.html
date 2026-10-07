@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snake Serial Monitor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/6.0.0/xterm.min.css">
+<style>
+  :root{
+    --bg:#0b0d10;
+    --panel:#15181d;
+    --panel-2:#1c2026;
+    --line:#2a2f37;
+    --text:#e6e9ee;
+    --muted:#8b93a1;
+    --accent:#35e07a;
+    --danger:#e05a5a;
+    --radius:14px;
+    --mono:Consolas,"Cascadia Mono","Courier New",monospace;
+    --ui:"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--ui);
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+
+  /* ---------- หัวหน้า ---------- */
+  header{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:14px 20px;border-bottom:1px solid var(--line);
+    background:var(--panel);
+  }
+  header h1{
+    margin:0;font-size:17px;font-weight:600;letter-spacing:.3px;
+  }
+  header h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:12px;font-family:var(--mono)}
+  .spacer{flex:1}
+
+  button{
+    font-family:var(--ui);font-size:13px;font-weight:600;
+    padding:9px 16px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);cursor:pointer;
+    transition:border-color .15s,background .15s;
+  }
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#06130b;border-color:var(--accent)}
+  button.primary:hover:not(:disabled){filter:brightness(1.1)}
+
+  .dot{
+    display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:var(--muted);margin-right:7px;vertical-align:1px;
+  }
+  .dot.on{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .dot.err{background:var(--danger)}
+
+  /* ---------- เนื้อหา ---------- */
+  main{
+    flex:1;display:flex;gap:20px;padding:20px;
+    align-items:flex-start;justify-content:center;flex-wrap:wrap;
+  }
+
+  /* กรอบจอแบบ CRT */
+  .screen{
+    position:relative;padding:18px;border-radius:var(--radius);
+    background:#05070a;border:1px solid var(--line);
+    box-shadow:0 18px 50px rgba(0,0,0,.6), inset 0 0 70px rgba(0,0,0,.8);
+  }
+  .screen::after{
+    content:"";position:absolute;inset:18px;pointer-events:none;
+    border-radius:4px;opacity:0;transition:opacity .2s;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,.26) 0px, rgba(0,0,0,.26) 1px,
+      transparent 1px, transparent 3px);
+  }
+  .screen.scanlines::after{opacity:1}
+  .screen.glow .xterm-rows{text-shadow:0 0 7px currentColor}
+  #term .xterm-viewport{overflow:hidden !important}
+
+  /* ---------- แผงข้าง ---------- */
+  aside{
+    width:270px;display:flex;flex-direction:column;gap:14px;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px 16px;
+  }
+  .card h2{
+    margin:0 0 12px;font-size:11px;font-weight:700;
+    letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);
+  }
+  .stat{display:flex;align-items:baseline;justify-content:space-between;padding:5px 0}
+  .stat + .stat{border-top:1px solid var(--line)}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-family:var(--mono);font-size:19px;font-weight:600}
+  .state-pill{
+    display:block;text-align:center;font-family:var(--mono);
+    font-size:15px;font-weight:700;letter-spacing:1px;
+    padding:9px;border-radius:9px;
+    background:var(--panel-2);border:1px solid var(--line);
+  }
+  .notice{
+    margin-top:10px;font-family:var(--mono);font-size:11px;
+    color:#e0c05a;word-break:break-word;
+  }
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0}
+  .row label{font-size:12px;color:var(--muted)}
+  select{
+    font-family:var(--ui);font-size:12px;padding:5px 7px;border-radius:7px;
+    background:var(--panel-2);color:var(--text);border:1px solid var(--line);
+  }
+  input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
+  .tiny{font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.7}
+
+  /* ---------- กล่องเตือน ---------- */
+  #msg{
+    margin:0 20px 20px;padding:14px 16px;border-radius:var(--radius);
+    border:1px solid var(--line);background:var(--panel);
+    font-size:13px;line-height:1.65;display:none;
+  }
+  #msg.show{display:block}
+  #msg.bad{border-color:var(--danger)}
+  #msg code{
+    font-family:var(--mono);background:var(--panel-2);
+    padding:1px 5px;border-radius:4px;
+  }
+  #msg b{color:var(--accent)}
+
+  @media (max-width:760px){
+    main{padding:12px;gap:12px}
+    aside{width:100%}
+    .screen{padding:10px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Snake <span>Serial Monitor</span></h1>
+  <div class="sub">NUCLEO-F411RE &middot; USART2 &middot; 115200 8N1</div>
+  <div class="spacer"></div>
+  <div class="sub"><span class="dot" id="dot"></span><span id="connText">ยังไม่ได้เชื่อมต่อ</span></div>
+  <button class="primary" id="btnConnect">Connect</button>
+  <button id="btnDisconnect" disabled>Disconnect</button>
+</header>
+
+<div id="msg"></div>
+
+<main>
+  <div class="screen glow" id="screen">
+    <div id="term"></div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h2>สถานะเกม</h2>
+      <div class="state-pill" id="vState">&mdash;</div>
+      <div class="stat"><span class="k">โหมด</span><span class="v" id="vMode">&mdash;</span></div>
+      <div class="notice" id="vNotice"></div>
+    </div>
+
+    <div class="card">
+      <h2>คะแนน</h2>
+      <div class="stat"><span class="k">SCORE</span><span class="v" id="vScore">&mdash;</span></div>
+      <div class="stat"><span class="k">BEST</span><span class="v" id="vBest">&mdash;</span></div>
+      <div class="stat"><span class="k">LENGTH</span><span class="v" id="vLen">&mdash;</span></div>
+      <div class="stat"><span class="k">SPEED</span><span class="v" id="vSpeed">&mdash;</span></div>
+    </div>
+
+    <div class="card">
+      <h2>ลิงก์สื่อสาร</h2>
+      <div class="stat"><span class="k">เฟรม/วินาที</span><span class="v" id="vFps">0</span></div>
+      <div class="stat"><span class="k">ไบต์/วินาที</span><span class="v" id="vBps">0</span></div>
+      <div class="stat"><span class="k">เฟรมทั้งหมด</span><span class="v" id="vFrames">0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>หน้าจอ</h2>
+      <div class="row">
+        <label for="shape">รูปสัญลักษณ์</label>
+        <select id="shape">
+          <option value="mixed">สี่เหลี่ยม กำแพงเข้ม</option>
+          <option value="block">สี่เหลี่ยม กำแพงจาง</option>
+          <option value="ascii">ASCII เดิม</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="wide">ช่องสี่เหลี่ยมจัตุรัส</label>
+        <input type="checkbox" id="wide" checked>
+      </div>
+      <div class="row">
+        <label for="theme">ธีมสี</label>
+        <select id="theme">
+          <option value="green">Classic green</option>
+          <option value="amber">Amber CRT</option>
+          <option value="ice">Ice blue</option>
+          <option value="paper">Paper white</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="glow">เรืองแสง</label>
+        <input type="checkbox" id="glow" checked>
+      </div>
+      <div class="row">
+        <label for="scan">เส้นสแกน</label>
+        <input type="checkbox" id="scan">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>วิธีเล่น</h2>
+      <div class="tiny">
+        D2 &nbsp;start<br>
+        D3 &nbsp;restart<br>
+        D4 &nbsp;pause<br>
+        D5 &nbsp;สลับโหมด<br>
+        <span style="color:#ff4d4d">&#9608;</span> &nbsp;กำแพง (โหมด WALL)<br>
+        joystick &nbsp;บังคับทิศ<br>
+        pot &nbsp;ปรับความเร็ว 1-5
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/6.0.0/xterm.js"></script>
+<script>
+"use strict";
+
+/* ===========================================================
+ *  ค่าคงที่ที่ผูกกับเฟิร์มแวร์ (app_render.c)
+ *  เฟรม = ESC[?25l ESC[H + 24 บรรทัด บรรทัดละ 35 ตัวอักษร
+ *  บรรทัดสุดท้ายไม่มี CR LF ทำให้จอไม่เลื่อน
+ * ===========================================================*/
+const COLS = 35;                 /* ความกว้างจริงของเฟรมที่บอร์ดส่งมา */
+const COLS_WIDE = 67;            /* 1 ขอบ + กำแพงซ้าย + 32 ช่องคูณสอง + กำแพงขวา */
+const ROWS = 24;                 /* ความสูงของเฟรมที่บอร์ดส่งมา คงที่เสมอ */
+/* บรรทัดคำอธิบายสัญลักษณ์ถูกตัดออกจากจอ ตั้งเป็น true ถ้าอยากได้คืน */
+const SHOW_LEGEND = false;
+const DISP_ROWS = SHOW_LEGEND ? ROWS : (ROWS - 1);
+const BAUD = 115200;
+const FRAME_MARK = "\x1b[H";     /* ใช้เป็นตัวตัดเฟรม */
+const HIDE_CURSOR = "\x1b[?25l";
+
+/* ขอบเขตของกระดานในเฟรม ตรงกับ RENDER_ROW_* และ RENDER_COL_* */
+const ROW_BOARD_TOP = 2;
+const ROW_BOARD_BOTTOM = 19;
+const ROW_LEGEND = 20;
+const COL_WALL_L = 1;
+const COL_WALL_R = 34;
+
+/* ---------------------------------------------------------
+ *  ชุดสัญลักษณ์
+ *  บอร์ดส่ง ASCII มาเหมือนเดิมทุกชุด การแปลงเกิดที่นี่ล้วน ๆ
+ *  จึงไม่กินงบไบต์ต่อเฟรมแม้แต่ไบต์เดียว
+ *  ใช้อักขระกลุ่ม Block Elements (U+2580-259F) เป็นหลัก เพราะ xterm
+ *  วาดกลุ่มนี้เป็นสี่เหลี่ยมเต็มช่องด้วยตัวเอง ไม่ได้ดึงจากฟอนต์
+ *  จึงต่อกันสนิทไม่มีร่อง ผิดกับ U+25A0 ที่เล็กกว่าช่องและมีช่องว่างคั่น
+ * -------------------------------------------------------*/
+const SHAPES = {
+  ascii: null,                                              /* ไม่แปลง */
+  /* กำแพงเข้ม · ตัวงู · หัวทึบ · อาหารสี่เหลี่ยมทึบ (ลงสีขาวทีหลัง) */
+  mixed: { "#": "▒", "o": "▓", "@": "█", "*": "█", "X": "█" },
+  /* เหมือนกันทุกอย่าง ต่างแค่กำแพงจางลง ให้ตัวงูเด่นขึ้น */
+  block: { "#": "░", "o": "▓", "@": "█", "*": "█", "X": "█" }
+};
+
+/* ตำแหน่งคอลัมน์ของค่าต่าง ๆ บนสองบรรทัดแรก ตรงกับ RENDER_COL_* */
+const POS = {
+  score: [7, 4],
+  len:   [17, 3],
+  speed: [26, 1],
+  mode:  [28, 7],
+  best:  [7, 4],
+  state: [13, 22]
+};
+const ROW_NOTICE = 22;
+
+const THEMES = {
+  green:  { background:"#05070a", foreground:"#35e07a", cursor:"#35e07a" },
+  amber:  { background:"#0d0803", foreground:"#ffb64a", cursor:"#ffb64a" },
+  ice:    { background:"#04080d", foreground:"#6fd8ff", cursor:"#6fd8ff" },
+  paper:  { background:"#f4f1e8", foreground:"#22252a", cursor:"#22252a" }
+};
+
+/* สีของอาหาร แยกจาก THEMES เพราะ xterm ไม่รู้จักคีย์นี้
+ * ธีมพื้นสว่างใช้ขาวไม่ได้ จะจมหายไปกับพื้น จึงเปลี่ยนเป็นแดง */
+const FOOD_COLOR = {
+  green: "#ffffff",
+  amber: "#ffffff",
+  ice:   "#ffffff",
+  paper: "#1a56db"      /* พื้นสว่างใช้ขาวไม่ได้ ใช้น้ำเงินแทนเพื่อไม่ชนกับแดงของกำแพง */
+};
+
+/* ก้อนกำแพงในโหมด WALL เป็นสี่เหลี่ยมแดงทุกธีม */
+const BLOCK_COLOR = {
+  green: "#ff4d4d",
+  amber: "#ff4d4d",
+  ice:   "#ff4d4d",
+  paper: "#c0271e"
+};
+let themeName = "green";
+
+/* รหัสสี ANSI แบบ 24 บิต · ใส่ตอนแปลงเฟรมในเบราว์เซอร์
+ * จึงไม่เปลืองไบต์ของลิงก์ serial และไม่ต้องแก้เฟิร์มแวร์ */
+const SGR_DEFAULT = "[39m";
+function sgrOf(hex) {
+  return "[38;2;" + parseInt(hex.substr(1, 2), 16) +
+         ";" + parseInt(hex.substr(3, 2), 16) +
+         ";" + parseInt(hex.substr(5, 2), 16) + "m";
+}
+function foodSgr() {
+  return sgrOf(FOOD_COLOR[themeName]);
+}
+
+/* สีของตัวอักษรในกระดานที่ต้องลงสีพิเศษ · ที่เหลือใช้สีหลักของธีม */
+function cellSgr(ch) {
+  let sgr = null;
+  if (ch === "*") { sgr = foodSgr(); }
+  else if (ch === "X") { sgr = sgrOf(BLOCK_COLOR[themeName]); }
+  else { sgr = null; }
+  return sgr;
+}
+
+/* ===========================================================
+ *  ตัว terminal
+ * ===========================================================*/
+/* ค่าเริ่มต้นของหน้าจอ: บล็อกทึบ และขยายช่องเป็นสองเท่าให้เป็นสี่เหลี่ยมจัตุรัส */
+let shapeName = "mixed";
+let wideCells = true;
+
+function curCols() {
+  return wideCells ? COLS_WIDE : COLS;
+}
+
+const term = new Terminal({
+  cols: COLS_WIDE,
+  rows: DISP_ROWS,
+  fontFamily: 'Consolas, "Cascadia Mono", "Courier New", monospace',
+  fontSize: 22,
+  lineHeight: 1.0,
+  cursorBlink: false,
+  disableStdin: true,        /* ระดับ 1 เป็นจอแสดงผลเท่านั้น ไม่ส่งคีย์กลับ */
+  scrollback: 0,             /* กันจอเลื่อนทุกกรณี */
+  convertEol: false,
+  theme: THEMES.green
+});
+term.open(document.getElementById("term"));
+term.write("\x1b[?25l");
+term.write(" รอการเชื่อมต่อ...");
+
+/* ---------------------------------------------------------
+ *  ปรับขนาดตัวอักษรให้จอ 35x24 พอดีหน้าต่างเสมอ
+ *  ต้องคง cols/rows ไว้เท่าเดิมเด็ดขาด เพราะเฟรมจากบอร์ด
+ *  มีขนาดตายตัว ถ้าจำนวนคอลัมน์ไม่ตรงภาพจะเพี้ยนทันที
+ * -------------------------------------------------------*/
+function fitFont() {
+  const screenEl = document.querySelector("#term .xterm-screen");
+  if (!screenEl) { return; }
+
+  const headerEl = document.querySelector("header");
+  const msgEl = document.getElementById("msg");
+  const mainEl = document.querySelector("main");
+  const asideEl = document.querySelector("aside");
+
+  /* เนื้อที่ที่เหลือจริง หลังหักหัวหน้า กล่องข้อความ และขอบของกรอบจอ */
+  const usedH = headerEl.offsetHeight +
+                (msgEl.className !== "" ? (msgEl.offsetHeight + 20) : 0) + 76;
+  const availH = window.innerHeight - usedH;
+  const narrow = window.innerWidth < 760;
+  const availW = mainEl.clientWidth - (narrow ? 0 : (asideEl.offsetWidth + 20)) - 76;
+
+  /* วัดขนาดจริงที่ font ตัวอย่าง แล้วเทียบบัญญัติไตรยางศ์
+   * ดีกว่าเดาอัตราส่วนตัวอักษร เพราะแต่ละเครื่องมีฟอนต์ไม่เหมือนกัน */
+  const PROBE = 20;
+  term.options.fontSize = PROBE;
+  term.resize(curCols(), DISP_ROWS);
+
+  const box = screenEl.getBoundingClientRect();
+  if ((box.height <= 0) || (box.width <= 0)) { return; }
+
+  let size = Math.floor(Math.min((availH * PROBE) / box.height,
+                                 (availW * PROBE) / box.width));
+  if (size < 11) { size = 11; }
+  if (size > 28) { size = 28; }
+
+  term.options.fontSize = size;
+  term.resize(curCols(), DISP_ROWS);  /* คงจำนวนคอลัมน์ไว้เสมอ ห้ามให้ xterm คิดเอง */
+}
+fitFont();
+window.addEventListener("resize", fitFont);
+
+/* ===========================================================
+ *  ตัวแปรของลิงก์ serial
+ * ===========================================================*/
+let port = null;
+let reader = null;
+let keepReading = false;
+
+let lastBody = null;          /* เฟรมล่าสุดที่ครบ ใช้วาดซ้ำเวลาเปลี่ยนการแสดงผล */
+let acc = "";                /* ข้อความที่ยังตัดเฟรมไม่ครบ */
+const decoder = new TextDecoder("ascii");
+let bytesWindow = 0;
+let framesWindow = 0;
+let framesTotal = 0;
+
+/* ===========================================================
+ *  แกะค่าจากเฟรม
+ *  ทุกบรรทัดถูกเติมช่องว่างให้ครบ 35 ตัวอักษรเสมอ
+ *  จึงตัดด้วยตำแหน่งคอลัมน์คงที่ได้ ไม่ต้องใช้ regex ซับซ้อน
+ * ===========================================================*/
+function field(line, spec) {
+  if (typeof line !== "string") { return ""; }
+  return line.substr(spec[0], spec[1]).trim();
+}
+
+function parseFrame(body) {
+  const lines = body.split("\r\n");
+  if (lines.length < 2) { return; }
+
+  const head1 = lines[0];
+  const head2 = lines[1];
+  if (head1.indexOf("SCORE") < 0) { return; }   /* ไม่ใช่เฟรมเกม ข้ามไป */
+
+  set("vScore", field(head1, POS.score));
+  set("vLen",   field(head1, POS.len));
+  set("vSpeed", field(head1, POS.speed));
+  set("vMode",  field(head1, POS.mode));
+  set("vBest",  field(head2, POS.best));
+
+  const state = field(head2, POS.state);
+  set("vState", state === "" ? "&mdash;" : state);
+
+  const notice = (lines[ROW_NOTICE] || "").trim();
+  document.getElementById("vNotice").textContent = notice;
+}
+
+function set(id, value) {
+  const el = document.getElementById(id);
+  if (value === "&mdash;") { el.innerHTML = "&mdash;"; }
+  else { el.textContent = value; }
+}
+
+/* ===========================================================
+ *  ชั้นแปลงสัญลักษณ์
+ *  ทำงานกับเฟรมที่ครบแล้วเท่านั้น จึงรู้ตำแหน่งแถว/คอลัมน์แน่นอน
+ *  และแปลงเฉพาะในกระดาน ไม่ไปโดนตัว o ในคำว่า food หรือ from
+ * ===========================================================*/
+function glyph(ch, map) {
+  if (ch === undefined) { return " "; }
+  if ((map !== null) && (map[ch] !== undefined)) { return map[ch]; }
+  return ch;
+}
+
+function padTo(text, width) {
+  let out = text;
+  while (out.length < width) { out += " "; }
+  return out;
+}
+
+/* แถวของกระดาน: กำแพงซ้าย-ขวาคงความกว้างเดิม ส่วน 32 ช่องตรงกลางขยายได้ */
+function boardLine(line, map) {
+  const src = line.split("");
+  let out = glyph(src[0], null) + glyph(src[COL_WALL_L], map);
+  let col;
+
+  for (col = COL_WALL_L + 1; col < COL_WALL_R; col++) {
+    const g = glyph(src[col], map);
+    const cell = wideCells ? (g + g) : g;
+
+    /* รหัสสีไม่กินคอลัมน์ ความกว้างของบรรทัดบนจอจึงยังเท่าเดิม */
+    const sgr = cellSgr(src[col]);
+
+    out += (sgr !== null) ? (sgr + cell + SGR_DEFAULT) : cell;
+  }
+
+  return out + glyph(src[COL_WALL_R], map);
+}
+
+/* บรรทัดคำอธิบายสัญลักษณ์ต้องเปลี่ยนตาม ไม่งั้นคำอธิบายจะไม่ตรงกับของบนจอ
+ * ตรวจก่อนว่าตัวอักษรตรงตำแหน่งเป็นสัญลักษณ์จริง เผื่อข้อความถูกแก้ภายหลัง */
+function legendLine(line, map) {
+  const src = line.split("");
+
+  if ((src[1] === "@") && (src[10] === "o") && (src[19] === "*")) {
+    src[1] = glyph(src[1], map);
+    src[10] = glyph(src[10], map);
+    src[19] = foodSgr() + glyph(src[19], map) + SGR_DEFAULT;
+  }
+
+  return src.join("");
+}
+
+function transform(body) {
+  const map = SHAPES[shapeName];
+  const lines = body.split("\r\n");
+  let row;
+
+  if (lines.length !== ROWS) { return body; }   /* ไม่ใช่เฟรมเกม ส่งผ่านตามเดิม */
+
+  const out = [];
+  for (row = 0; row < ROWS; row++) {
+    const line = (typeof lines[row] === "string") ? lines[row] : "";
+
+    if ((row >= ROW_BOARD_TOP) && (row <= ROW_BOARD_BOTTOM)) {
+      out.push(boardLine(line, map));
+    } else if (row === ROW_LEGEND) {
+      /* ข้ามทิ้ง ไม่ดันบรรทัดว่างไว้ จอจึงเตี้ยลงหนึ่งบรรทัดพอดี */
+      if (SHOW_LEGEND) { out.push(padTo(legendLine(line, map), curCols())); }
+    } else {
+      out.push(padTo(line, curCols()));
+    }
+  }
+
+  return out.join("\r\n");
+}
+
+/* ===========================================================
+ *  เส้นทางข้อมูล: เก็บจนครบเฟรมแล้วค่อยวาดทีเดียว
+ *  ถ้าวาดทีละก้อนที่ไหลเข้ามา จะแปลงสัญลักษณ์ไม่ได้เพราะไม่รู้ว่า
+ *  ตัวอักษรที่เห็นอยู่คอลัมน์ไหน · ของแถมคือภาพไม่ฉีกกลางเฟรม
+ * ===========================================================*/
+function onBytes(chunk) {
+  bytesWindow += chunk.length;
+  acc += decoder.decode(chunk, { stream: true });
+
+  const parts = acc.split(FRAME_MARK);
+  if (parts.length < 2) {
+    if (acc.length > 8000) { acc = acc.slice(-2000); }
+    return;
+  }
+
+  const last = parts.length - 2;      /* เฟรมล่าสุดที่จบแล้ว */
+  const body = parts[last];
+  acc = parts[parts.length - 1];
+
+  framesWindow += parts.length - 1;
+  framesTotal  += parts.length - 1;
+
+  /* parts[0] คือเศษที่ค้างมาก่อนเจอตัวตัดเฟรมตัวแรก ไม่ใช่เฟรมเต็ม */
+  if ((last >= 1) || (body.indexOf("SCORE") >= 0)) {
+    lastBody = body;
+    parseFrame(body);
+    redraw();
+  }
+}
+
+/* วาดเฟรมล่าสุดซ้ำ ใช้ตอนผู้ใช้เปลี่ยนรูปสัญลักษณ์ ธีม หรือความกว้างช่อง
+ * จะได้เห็นผลทันทีโดยไม่ต้องรอเฟรมถัดไปจากบอร์ด */
+function redraw() {
+  if (lastBody !== null) {
+    term.write(HIDE_CURSOR + FRAME_MARK + transform(lastBody));
+  }
+}
+
+/* เปลี่ยนรูปสัญลักษณ์หรือความกว้างช่อง แล้วล้างจอเพื่อไม่ให้มีของเดิมค้าง */
+function applyLayout() {
+  term.resize(curCols(), DISP_ROWS);
+  term.reset();
+  term.write(HIDE_CURSOR);
+  fitFont();
+  redraw();
+}
+
+/* ===========================================================
+ *  เชื่อมต่อ / ตัดการเชื่อมต่อ
+ * ===========================================================*/
+async function connect() {
+  if (!("serial" in navigator)) { return; }
+
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({
+      baudRate: BAUD,
+      dataBits: 8,
+      stopBits: 1,
+      parity: "none",
+      bufferSize: 4096
+    });
+  } catch (e) {
+    /* ผู้ใช้กดยกเลิกหน้าต่างเลือกพอร์ต หรือพอร์ตถูกโปรแกรมอื่นจับอยู่ */
+    showMsg(
+      "<b>เปิดพอร์ตไม่ได้</b><br>" + escapeHtml(String(e && e.message ? e.message : e)) +
+      "<br><br>สาเหตุที่พบบ่อยที่สุดคือ <b>PuTTY ยังเปิดอยู่</b> " +
+      "&mdash; COM port เปิดได้ทีละโปรแกรมเดียว ปิด PuTTY แล้วลองอีกครั้ง",
+      true);
+    port = null;
+    return;
+  }
+
+  hideMsg();
+  setConnected(true);
+  term.reset();
+  term.write("\x1b[?25l");
+  acc = "";
+  keepReading = true;
+
+  try {
+    reader = port.readable.getReader();
+    while (keepReading) {
+      const { value, done } = await reader.read();
+      if (done) { break; }
+      if (value && value.length > 0) {
+        onBytes(value);
+      }
+    }
+  } catch (e) {
+    if (keepReading) {
+      showMsg("<b>การอ่านพอร์ตหยุดลง</b><br>" +
+              escapeHtml(String(e && e.message ? e.message : e)) +
+              "<br><br>ถ้าเพิ่งถอดสาย USB หรือเพิ่งแฟลชบอร์ด ให้กด Connect ใหม่", true);
+    }
+  } finally {
+    try { if (reader) { reader.releaseLock(); } } catch (e2) { /* ปล่อยผ่าน */ }
+    reader = null;
+    await closePort();
+    setConnected(false);
+  }
+}
+
+async function closePort() {
+  if (port) {
+    try { await port.close(); } catch (e) { /* ปิดไม่ได้ก็ปล่อยผ่าน */ }
+    port = null;
+  }
+}
+
+async function disconnect() {
+  keepReading = false;
+  if (reader) {
+    try { await reader.cancel(); } catch (e) { /* ปล่อยผ่าน */ }
+  }
+}
+
+function setConnected(on) {
+  const dot = document.getElementById("dot");
+  dot.className = on ? "dot on" : "dot";
+  document.getElementById("connText").textContent =
+    on ? ("เชื่อมต่อแล้ว " + BAUD + " 8N1") : "ยังไม่ได้เชื่อมต่อ";
+  document.getElementById("btnConnect").disabled = on;
+  document.getElementById("btnDisconnect").disabled = !on;
+}
+
+/* ===========================================================
+ *  ตัวนับอัตราข้อมูล อัปเดตทุกวินาที
+ * ===========================================================*/
+setInterval(function () {
+  document.getElementById("vFps").textContent = String(framesWindow);
+  document.getElementById("vBps").textContent = String(bytesWindow);
+  document.getElementById("vFrames").textContent = String(framesTotal);
+  framesWindow = 0;
+  bytesWindow = 0;
+}, 1000);
+
+/* ===========================================================
+ *  ตัวควบคุมหน้าจอ (ฝั่งเบราว์เซอร์ล้วน ไม่กินงบไบต์ของเฟรม)
+ * ===========================================================*/
+document.getElementById("shape").addEventListener("change", function (ev) {
+  shapeName = ev.target.value;
+  applyLayout();
+});
+document.getElementById("wide").addEventListener("change", function (ev) {
+  wideCells = ev.target.checked;
+  applyLayout();
+});
+document.getElementById("theme").addEventListener("change", function (ev) {
+  themeName = ev.target.value;
+  term.options.theme = THEMES[themeName];
+  redraw();
+});
+document.getElementById("glow").addEventListener("change", function (ev) {
+  document.getElementById("screen").classList.toggle("glow", ev.target.checked);
+});
+document.getElementById("scan").addEventListener("change", function (ev) {
+  document.getElementById("screen").classList.toggle("scanlines", ev.target.checked);
+});
+
+document.getElementById("btnConnect").addEventListener("click", connect);
+document.getElementById("btnDisconnect").addEventListener("click", disconnect);
+
+window.addEventListener("beforeunload", function () {
+  keepReading = false;
+});
+
+/* ===========================================================
+ *  ข้อความแจ้งเตือน
+ * ===========================================================*/
+function escapeHtml(s) {
+  return s.replace(/[&<>"]/g, function (c) {
+    return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+  });
+}
+function showMsg(html, bad) {
+  const el = document.getElementById("msg");
+  el.innerHTML = html;
+  el.className = bad ? "show bad" : "show";
+  fitFont();
+}
+function hideMsg() {
+  document.getElementById("msg").className = "";
+  fitFont();
+}
+
+/* ตรวจความพร้อมของเบราว์เซอร์ตอนเปิดหน้า */
+if (!("serial" in navigator)) {
+  document.getElementById("btnConnect").disabled = true;
+  document.getElementById("dot").className = "dot err";
+  document.getElementById("connText").textContent = "เบราว์เซอร์นี้ไม่รองรับ";
+  showMsg(
+    "<b>เบราว์เซอร์นี้ยังไม่มี Web Serial API</b><br>" +
+    "ต้องใช้ <b>Chrome</b> หรือ <b>Edge</b> (Firefox และ Safari ยังไม่รองรับ)<br><br>" +
+    "ถ้าใช้ Chrome อยู่แล้วแต่ยังขึ้นข้อความนี้ แปลว่าเปิดหน้านี้ด้วย <code>file://</code> " +
+    "ซึ่งใช้ไม่ได้ ต้องเสิร์ฟผ่าน localhost ก่อน &mdash; " +
+    "สั่ง <code>python -m http.server 8000</code> ในโฟลเดอร์นี้ " +
+    "แล้วเปิด <code>http://localhost:8000/Snake_Web.html</code>",
+    true);
+} else {
+  showMsg(
+    "กด <b>Connect</b> แล้วเลือกพอร์ตของ ST-Link (STMicroelectronics STLink Virtual COM Port) " +
+    "&mdash; <b>ต้องปิด PuTTY ก่อน</b> เพราะ COM port เปิดได้ทีละโปรแกรมเดียว",
+    false);
+}
+
+fitFont();
+</script>
+</body>
+</html>
