@@ -1,0 +1,16 @@
+../Src/App/app_snake.c:57:6:AppSnake_Reset	3
+../Src/App/app_snake.c:93:6:AppSnake_SetMode	1
+../Src/App/app_snake.c:102:16:AppSnake_GetMode	1
+../Src/App/app_snake.c:113:6:AppSnake_RequestDir	1
+../Src/App/app_snake.c:127:11:AppSnake_Step	23
+../Src/App/app_snake.c:236:10:AppSnake_GetLength	1
+../Src/App/app_snake.c:250:11:AppSnake_GetCell	3
+../Src/App/app_snake.c:269:6:AppSnake_GetHead	3
+../Src/App/app_snake.c:281:17:Snake_CellIndex	1
+../Src/App/app_snake.c:287:17:Snake_TailBodyIndex	1
+../Src/App/app_snake.c:295:13:Snake_IsOpposite	9
+../Src/App/app_snake.c:319:13:Snake_PlaceFood	6
+../Src/App/app_snake.c:358:13:Snake_SwapEnds	3
+../Src/App/app_snake.c:390:17:Snake_DirBetween	4
+../Src/App/app_snake.c:419:13:Snake_IsWallSpot	4
+../Src/App/app_snake.c:462:13:Snake_PlaceWall	8

@@ -1,0 +1,6 @@
+../../Library/CMSIS/Core/Include/core_cm4.h:1794:22:__NVIC_EnableIRQ	2
+../../Library/CMSIS/Core/Include/core_cm4.h:1924:22:__NVIC_SetPriority	2
+../Src/Driver/drv_tick.c:34:6:DrvTick_Init	1
+../Src/Driver/drv_tick.c:58:6:DrvTick_Start	1
+../Src/Driver/drv_tick.c:69:10:DrvTick_TakePending	1
+../Src/Driver/drv_tick.c:82:6:TIM2_IRQHandler	3

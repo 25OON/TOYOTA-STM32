@@ -1,0 +1,2 @@
+../Src/Driver/drv_critical.c:21:10:DrvCritical_Enter	1
+../Src/Driver/drv_critical.c:38:6:DrvCritical_Exit	2

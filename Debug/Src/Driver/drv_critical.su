@@ -1,0 +1,2 @@
+../Src/Driver/drv_critical.c:21:10:DrvCritical_Enter	16	static,ignoring_inline_asm
+../Src/Driver/drv_critical.c:38:6:DrvCritical_Exit	16	static,ignoring_inline_asm

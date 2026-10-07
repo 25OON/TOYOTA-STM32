@@ -1,0 +1,4 @@
+../Src/Driver/drv_seg.c:49:6:DrvSeg_Init	2
+../Src/Driver/drv_seg.c:70:6:DrvSeg_ShowDigit	2
+../Src/Driver/drv_seg.c:86:6:DrvSeg_Blank	1
+../Src/Driver/drv_seg.c:94:13:Seg_WriteCode	2

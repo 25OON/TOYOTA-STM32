@@ -1,0 +1,9 @@
+../Src/App/app_input.c:57:6:AppInput_Reset	4	static
+../Src/App/app_input.c:68:6:AppInput_Update	16	static
+../Src/App/app_input.c:95:6:AppInput_TakeDirection	24	static
+../Src/App/app_input.c:113:9:AppInput_GetSpeedLevel	4	static
+../Src/App/app_input.c:122:9:AppInput_GetStepTicks	16	static
+../Src/App/app_input.c:142:10:AppInput_GetSeedSource	4	static
+../Src/App/app_input.c:155:6:AppInput_GetRaw	16	static
+../Src/App/app_input.c:166:13:Input_UpdateDirection	24	static
+../Src/App/app_input.c:202:13:Input_UpdateSpeed	24	static

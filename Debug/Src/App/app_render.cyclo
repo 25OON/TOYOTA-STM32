@@ -1,0 +1,9 @@
+../Src/App/app_render.c:93:6:AppRender_Init	2
+../Src/App/app_render.c:128:6:AppRender_SendFrame	5
+../Src/App/app_render.c:150:13:Render_ClearText	3
+../Src/App/app_render.c:167:13:Render_PutChar	3
+../Src/App/app_render.c:179:13:Render_PutText	4
+../Src/App/app_render.c:194:13:Render_PutUInt	4
+../Src/App/app_render.c:219:13:Render_DrawHeader	1
+../Src/App/app_render.c:235:13:Render_DrawBoard	9
+../Src/App/app_render.c:290:13:Render_DrawFooter	3

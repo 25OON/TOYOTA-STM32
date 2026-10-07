@@ -1,0 +1,9 @@
+../../Library/CMSIS/Core/Include/core_cm4.h:1794:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../../Library/CMSIS/Core/Include/core_cm4.h:1924:22:__NVIC_SetPriority	16	static
+../Src/Driver/drv_adc.c:55:6:DrvAdc_Init	8	static
+../Src/Driver/drv_adc.c:107:6:DrvAdc_GetSample	24	static
+../Src/Driver/drv_adc.c:134:10:DrvAdc_GetOverrunCount	4	static
+../Src/Driver/drv_adc.c:142:13:Adc_StopDmaStream	16	static
+../Src/Driver/drv_adc.c:155:13:Adc_StartDmaStream	4	static
+../Src/Driver/drv_adc.c:164:6:DMA2_Stream0_IRQHandler	16	static
+../Src/Driver/drv_adc.c:183:6:ADC_IRQHandler	8	static

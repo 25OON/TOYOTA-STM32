@@ -1,0 +1,9 @@
+../Src/App/app_render.c:93:6:AppRender_Init	16	static
+../Src/App/app_render.c:128:6:AppRender_SendFrame	24	static
+../Src/App/app_render.c:150:13:Render_ClearText	16	static
+../Src/App/app_render.c:167:13:Render_PutChar	24	static
+../Src/App/app_render.c:179:13:Render_PutText	24	static
+../Src/App/app_render.c:194:13:Render_PutUInt	40	static
+../Src/App/app_render.c:219:13:Render_DrawHeader	16	static
+../Src/App/app_render.c:235:13:Render_DrawBoard	16	static
+../Src/App/app_render.c:290:13:Render_DrawFooter	16	static

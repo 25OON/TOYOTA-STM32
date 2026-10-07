@@ -1,0 +1,2 @@
+../Src/Driver/drv_led.c:36:6:DrvLed_Init	16	static
+../Src/Driver/drv_led.c:56:6:DrvLed_Set	16	static

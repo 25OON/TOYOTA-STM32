@@ -1,0 +1,5 @@
+../Src/Driver/drv_gpio.c:33:6:DrvGpio_SetMode	2
+../Src/Driver/drv_gpio.c:59:6:DrvGpio_SetPull	2
+../Src/Driver/drv_gpio.c:85:6:DrvGpio_SetAltFunction	2
+../Src/Driver/drv_gpio.c:111:6:DrvGpio_Write	3
+../Src/Driver/drv_gpio.c:137:6:DrvGpio_ReadHigh	2

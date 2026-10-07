@@ -1,0 +1,4 @@
+../Src/Driver/drv_wdg.c:38:6:DrvWdg_Init	1
+../Src/Driver/drv_wdg.c:59:6:DrvWdg_Reload	1
+../Src/Driver/drv_wdg.c:68:6:DrvWdg_WasWatchdogReset	1
+../Src/Driver/drv_wdg.c:76:13:Wdg_WaitStatusClear	3

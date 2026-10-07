@@ -1,0 +1,8 @@
+../Src/App/app_main.c:67:6:App_Init	8	static
+../Src/App/app_main.c:108:6:App_Run	8	static
+../Src/App/app_main.c:124:13:App_SendBootSequence	16	static
+../Src/App/app_main.c:138:13:App_FeedAdcToInput	16	static
+../Src/App/app_main.c:149:13:App_HandleTicks	16	static
+../Src/App/app_main.c:181:13:App_HandleButtons	16	static
+../Src/App/app_main.c:197:13:App_UpdateLeds	16	static
+../Src/App/app_main.c:239:13:App_UpdateSevenSegment	16	static

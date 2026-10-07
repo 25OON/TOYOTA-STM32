@@ -1,0 +1,2 @@
+../Src/Driver/drv_led.c:36:6:DrvLed_Init	2
+../Src/Driver/drv_led.c:56:6:DrvLed_Set	2

@@ -1,0 +1,7 @@
+../../Library/CMSIS/Core/Include/core_cm4.h:1794:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../../Library/CMSIS/Core/Include/core_cm4.h:1924:22:__NVIC_SetPriority	16	static
+../Src/Driver/drv_uart.c:38:6:DrvUart_Init	8	static
+../Src/Driver/drv_uart.c:69:6:DrvUart_IsBusy	4	static
+../Src/Driver/drv_uart.c:83:6:DrvUart_Send	24	static
+../Src/Driver/drv_uart.c:114:13:Uart_StopDmaStream	16	static
+../Src/Driver/drv_uart.c:128:6:DMA1_Stream6_IRQHandler	16	static

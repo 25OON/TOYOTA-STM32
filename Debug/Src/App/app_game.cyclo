@@ -1,0 +1,13 @@
+../Src/App/app_game.c:63:6:AppGame_Init	1
+../Src/App/app_game.c:83:6:AppGame_SetNotice	1
+../Src/App/app_game.c:95:6:AppGame_OnTick	4
+../Src/App/app_game.c:125:6:AppGame_OnButtons	13
+../Src/App/app_game.c:196:6:AppGame_Service	3
+../Src/App/app_game.c:227:16:AppGame_GetState	1
+../Src/App/app_game.c:238:6:AppGame_TakeFoodEaten	1
+../Src/App/app_game.c:250:13:Game_StartNewGame	1
+../Src/App/app_game.c:264:13:Game_AdvanceSnake	7
+../Src/App/app_game.c:304:13:Game_EnterState	4
+../Src/App/app_game.c:322:13:Game_ToggleMode	3
+../Src/App/app_game.c:345:21:Game_ModeText	3
+../Src/App/app_game.c:367:21:Game_StateText	5

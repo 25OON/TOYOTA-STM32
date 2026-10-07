@@ -1,0 +1,10 @@
+../../Library/CMSIS/Core/Include/core_cm4.h:1794:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../../Library/CMSIS/Core/Include/core_cm4.h:1924:22:__NVIC_SetPriority	16	static
+../Src/Driver/drv_input.c:68:6:DrvInput_Init	16	static
+../Src/Driver/drv_input.c:125:6:DrvInput_TakeButtonEvents	24	static
+../Src/Driver/drv_input.c:145:13:Input_IsButtonActive	24	static
+../Src/Driver/drv_input.c:158:13:Input_OnButtonEdge	24	static
+../Src/Driver/drv_input.c:175:6:EXTI3_IRQHandler	8	static
+../Src/Driver/drv_input.c:184:6:EXTI4_IRQHandler	8	static
+../Src/Driver/drv_input.c:193:6:EXTI9_5_IRQHandler	8	static
+../Src/Driver/drv_input.c:202:6:EXTI15_10_IRQHandler	8	static
